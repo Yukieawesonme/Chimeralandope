@@ -1,270 +1,529 @@
-const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
-const ctx = canvas.getContext('2d')!;
-const healthFill = document.querySelector<HTMLDivElement>('#healthFill')!;
-const stats = document.querySelector<HTMLDivElement>('#stats')!;
-const timeLabel = document.querySelector<HTMLDivElement>('#time')!;
-const toast = document.querySelector<HTMLDivElement>('#toast')!;
-const startScreen = document.querySelector<HTMLDivElement>('#start')!;
+/**
+ * ChimeraLand 3D - Main Entry Point
+ * Bootstraps the game engine and starts the application
+ */
 
-interface Vec { x: number; y: number }
-interface Enemy { x: number; y: number; radius: number; speed: number; health: number; maxHealth: number; angle: number }
+import { createGameEngine } from '@engine/GameEngine.js';
+import { GameState } from '@core/Types.js';
+import { SaveManager } from '@save/SaveManager.js';
+import { GraphicsSettingsManager } from '@graphics/GraphicsSettingsManager.js';
+import { PlayerSystem } from '@entities/Player.js';
+import { TerrainSystem } from '@world/TerrainSystem.js';
+import { BiomeManager } from '@world/BiomeManager.js';
 
-const keys = new Set<string>();
-const mouse: Vec = { x: innerWidth / 2, y: innerHeight / 2 };
-let running = false;
-let last = 0;
-let score = 0;
-let elapsed = 0;
-let spawnTimer = 0;
-let attackCooldown = 0;
-let slashTimer = 0;
-let dashTimer = 0;
-let shake = 0;
-let touchMove: Vec = { x: 0, y: 0 };
+// ============================================================================
+// GLOBAL REFERENCES
+// ============================================================================
 
-const player = { x: innerWidth / 2, y: innerHeight / 2, radius: 18, speed: 230, health: 100, maxHealth: 100, angle: 0 };
-const enemies: Enemy[] = [];
+let engine: any = null;
+let saveManager: SaveManager;
+let graphicsManager: GraphicsSettingsManager;
+let playerSystem: PlayerSystem;
+let terrainSystem: TerrainSystem;
+let biomeManager: BiomeManager;
 
-function resize() {
-  const dpr = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = Math.floor(innerWidth * dpr);
-  canvas.height = Math.floor(innerHeight * dpr);
-  canvas.style.width = `${innerWidth}px`;
-  canvas.style.height = `${innerHeight}px`;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+async function main(): Promise<void> {
+  console.log('🧬 ChimeraLand 3D - Starting...');
+
+  // Get container
+  const container = document.getElementById('game-container');
+  if (!container) {
+    console.error('Game container not found!');
+    return;
+  }
+
+  // Initialize managers
+  saveManager = new SaveManager();
+  graphicsManager = new GraphicsSettingsManager(saveManager);
+
+  // Create and initialize engine
+  engine = await createGameEngine(container);
+  graphicsManager.setRenderer(engine.getRenderer());
+
+  // Initialize game systems
+  initializeGameSystems();
+
+  // Setup UI
+  setupUI();
+
+  // Load saved graphics settings
+  loadGraphicsSettings();
+
+  // Start game loop
+  engine.start();
+
+  console.log('✅ ChimeraLand 3D - Running!');
 }
 
-function showToast(text: string) {
-  toast.textContent = text;
-  toast.classList.add('show');
-  window.setTimeout(() => toast.classList.remove('show'), 1400);
-}
+function initializeGameSystems(): void {
+  const world = engine.getWorld();
+  const inputManager = engine.getInputManager();
+  const camera = engine.getRenderer().getCamera();
 
-function spawnEnemy() {
-  const side = Math.floor(Math.random() * 4);
-  let x = 0;
-  let y = 0;
-  if (side === 0) { x = Math.random() * innerWidth; y = -30; }
-  if (side === 1) { x = innerWidth + 30; y = Math.random() * innerHeight; }
-  if (side === 2) { x = Math.random() * innerWidth; y = innerHeight + 30; }
-  if (side === 3) { x = -30; y = Math.random() * innerHeight; }
-  const level = 1 + Math.floor(score / 250);
-  enemies.push({ x, y, radius: 16 + Math.random() * 8, speed: 55 + Math.random() * 25 + level * 3, health: 35 + level * 8, maxHealth: 35 + level * 8, angle: 0 });
-}
+  // Biome Manager
+  biomeManager = new BiomeManager(saveManager.getWorldSeed() || 'chimeraland_seed');
 
-function attack() {
-  if (!running || attackCooldown > 0) return;
-  attackCooldown = 0.28;
-  slashTimer = 0.16;
-  for (const enemy of [...enemies]) {
-    const dx = enemy.x - player.x;
-    const dy = enemy.y - player.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const angleTo = Math.atan2(dy, dx);
-    let diff = Math.abs(((angleTo - player.angle + Math.PI) % (Math.PI * 2)) - Math.PI);
-    if (dist < 92 && diff < 1.15) {
-      enemy.health -= 34;
-      shake = 5;
-      if (enemy.health <= 0) {
-        score += 100;
-        const i = enemies.indexOf(enemy);
-        if (i >= 0) enemies.splice(i, 1);
+  // Terrain System
+  terrainSystem = new TerrainSystem(world);
+  engine.addSystem(terrainSystem);
+
+  // Player System
+  playerSystem = new PlayerSystem(world, inputManager, camera);
+  engine.addSystem(playerSystem);
+
+  // Create player entity
+  const spawnPos = { x: 0, y: 35, z: 0 };
+  playerSystem.createPlayer(spawnPos);
+
+  // Connect player to terrain
+  const playerComp = playerSystem.getPlayerComponent();
+  if (playerComp) {
+    // Update terrain with player position each frame
+    const originalUpdate = playerSystem.update.bind(playerSystem);
+    playerSystem.update = (dt: number) => {
+      originalUpdate(dt);
+      if (playerComp && engine.getState() === GameState.Gameplay) {
+        const transform = playerSystem['transformComp'];
+        if (transform) {
+          terrainSystem.updatePlayerPosition({
+            x: transform.position.x,
+            y: transform.position.y,
+            z: transform.position.z
+          });
+        }
       }
-    }
+    };
+  }
+
+  // Listen for state changes
+  engine.onStateChange = (newState: GameState, oldState: GameState) => {
+    handleStateChange(newState, oldState);
+  };
+
+  // Loading progress
+  engine.onLoadingProgress = (progress: number, stage: string) => {
+    updateLoadingScreen(progress, stage);
+  };
+}
+
+function handleStateChange(newState: GameState, oldState: GameState): void {
+  const loadingScreen = document.getElementById('loading-screen');
+  const mainMenu = document.getElementById('main-menu');
+  const pauseMenu = document.getElementById('pause-menu');
+  const hud = document.getElementById('hud');
+
+  // Hide all
+  loadingScreen?.classList.add('hidden');
+  mainMenu?.classList.add('hidden');
+  pauseMenu?.classList.add('hidden');
+  hud?.classList.add('hidden');
+
+  switch (newState) {
+    case GameState.Loading:
+      loadingScreen?.classList.remove('hidden');
+      break;
+    case GameState.MainMenu:
+      mainMenu?.classList.remove('hidden');
+      break;
+    case GameState.Gameplay:
+      hud?.classList.remove('hidden');
+      break;
+    case GameState.PauseMenu:
+      pauseMenu?.classList.remove('hidden');
+      hud?.classList.remove('hidden');
+      break;
   }
 }
 
-function dash() {
-  if (!running || dashTimer > 0) return;
-  dashTimer = 1;
-  player.x += Math.cos(player.angle) * 95;
-  player.y += Math.sin(player.angle) * 95;
-  player.x = Math.max(20, Math.min(innerWidth - 20, player.x));
-  player.y = Math.max(20, Math.min(innerHeight - 20, player.y));
-  shake = 3;
+function updateLoadingScreen(progress: number, stage: string): void {
+  const bar = document.getElementById('loading-bar');
+  const text = document.getElementById('loading-text');
+  if (bar) bar.style.width = `${progress * 100}%`;
+  if (text) text.textContent = stage;
 }
 
-function reset() {
-  player.x = innerWidth / 2;
-  player.y = innerHeight / 2;
-  player.health = player.maxHealth;
-  enemies.length = 0;
-  score = 0;
-  elapsed = 0;
-  spawnTimer = 0;
-  for (let i = 0; i < 4; i++) spawnEnemy();
+function setupUI(): void {
+  // Main Menu Buttons
+  const newGameBtn = document.getElementById('btn-new-game');
+  const loadGameBtn = document.getElementById('btn-load-game');
+  const settingsBtn = document.getElementById('btn-settings');
+  const quitBtn = document.getElementById('btn-quit');
+
+  newGameBtn?.addEventListener('click', () => startNewGame());
+  loadGameBtn?.addEventListener('click', () => showLoadMenu());
+  settingsBtn?.addEventListener('click', () => showSettingsMenu());
+  quitBtn?.addEventListener('click', () => window.close());
+
+  // Load Menu
+  const loadSlotsContainer = document.getElementById('load-slots');
+  const backFromLoadBtn = document.getElementById('btn-back-from-load');
+  backFromLoadBtn?.addEventListener('click', () => showMainMenu());
+  refreshLoadSlots();
+
+  // Settings Menu
+  const graphicsSettingsContainer = document.getElementById('graphics-settings');
+  const backFromSettingsBtn = document.getElementById('btn-back-from-settings');
+  backFromSettingsBtn?.addEventListener('click', () => showMainMenu());
+  setupGraphicsSettingsUI();
+
+  // Pause Menu
+  const resumeBtn = document.getElementById('btn-resume');
+  const saveBtn = document.getElementById('btn-save');
+  const loadBtn = document.getElementById('btn-load');
+  const pauseSettingsBtn = document.getElementById('btn-pause-settings');
+  const mainMenuBtn = document.getElementById('btn-main-menu');
+
+  resumeBtn?.addEventListener('click', () => engine.changeState(GameState.Gameplay));
+  saveBtn?.addEventListener('click', () => quickSave());
+  loadBtn?.addEventListener('click', () => { engine.changeState(GameState.MainMenu); showLoadMenu(); });
+  pauseSettingsBtn?.addEventListener('click', () => showSettingsMenu());
+  mainMenuBtn?.addEventListener('click', () => { engine.changeState(GameState.MainMenu); showMainMenu(); });
+
+  // HUD
+  setupHUD();
 }
 
-function update(dt: number) {
-  elapsed += dt;
-  attackCooldown = Math.max(0, attackCooldown - dt);
-  slashTimer = Math.max(0, slashTimer - dt);
-  dashTimer = Math.max(0, dashTimer - dt);
-  shake = Math.max(0, shake - dt * 20);
-  spawnTimer -= dt;
-  if (spawnTimer <= 0 && enemies.length < 22) {
-    spawnEnemy();
-    spawnTimer = Math.max(0.35, 1.35 - elapsed * 0.008);
+function showMainMenu(): void {
+  engine.changeState(GameState.MainMenu);
+}
+
+function showLoadMenu(): void {
+  refreshLoadSlots();
+  document.getElementById('main-menu')?.classList.add('hidden');
+  document.getElementById('load-menu')?.classList.remove('hidden');
+}
+
+function showSettingsMenu(): void {
+  document.getElementById('main-menu')?.classList.add('hidden');
+  document.getElementById('pause-menu')?.classList.add('hidden');
+  document.getElementById('settings-menu')?.classList.remove('hidden');
+}
+
+function refreshLoadSlots(): void {
+  const container = document.getElementById('load-slots');
+  if (!container) return;
+
+  const slots = saveManager.getSaveSlots();
+  container.innerHTML = '';
+
+  for (const slot of slots) {
+    const slotEl = document.createElement('div');
+    slotEl.className = 'save-slot';
+    slotEl.innerHTML = `
+      <div class="slot-info">
+        <span class="slot-name">${slot.slot}</span>
+        ${slot.exists ? `
+          <span class="slot-details">
+            ${slot.playerName} · ${formatPlayTime(slot.playTimeSeconds ?? 0)} · ${slot.currentBiome}
+          </span>
+        ` : '<span class="slot-empty">Vazio</span>'}
+      </div>
+      ${slot.exists ? `
+        <div class="slot-actions">
+          <button class="btn-load-slot" data-slot="${slot.slot}">Carregar</button>
+          <button class="btn-delete-slot" data-slot="${slot.slot}">Excluir</button>
+        </div>
+      ` : ''}
+    `;
+    container.appendChild(slotEl);
   }
 
-  let mx = 0;
-  let my = 0;
-  if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1;
-  if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
-  if (keys.has('KeyW') || keys.has('ArrowUp')) my -= 1;
-  if (keys.has('KeyS') || keys.has('ArrowDown')) my += 1;
-  mx += touchMove.x;
-  my += touchMove.y;
-  const length = Math.sqrt(mx * mx + my * my);
-  if (length > 0) {
-    mx /= length;
-    my /= length;
-    player.x += mx * player.speed * dt;
-    player.y += my * player.speed * dt;
-  }
-  player.x = Math.max(player.radius, Math.min(innerWidth - player.radius, player.x));
-  player.y = Math.max(player.radius, Math.min(innerHeight - player.radius, player.y));
-  player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+  // Bind slot buttons
+  container.querySelectorAll('.btn-load-slot').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const slot = (e.target as HTMLButtonElement).dataset.slot!;
+      loadGame(slot);
+    });
+  });
 
-  for (const enemy of enemies) {
-    const dx = player.x - enemy.x;
-    const dy = player.y - enemy.y;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    enemy.angle = Math.atan2(dy, dx);
-    if (dist > player.radius + enemy.radius - 4) {
-      enemy.x += dx / dist * enemy.speed * dt;
-      enemy.y += dy / dist * enemy.speed * dt;
-    } else {
-      player.health -= 10 * dt;
-      if (player.health <= 0) {
-        player.health = 0;
-        showToast(`Fim de jogo · ${score} pontos`);
-        running = false;
-        startScreen.style.display = 'grid';
-        document.querySelector<HTMLButtonElement>('#play')!.textContent = 'JOGAR NOVAMENTE';
+  container.querySelectorAll('.btn-delete-slot').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const slot = (e.target as HTMLButtonElement).dataset.slot!;
+      if (confirm(`Excluir save ${slot}?`)) {
+        saveManager.deleteSlot(slot);
+        refreshLoadSlots();
       }
+    });
+  });
+}
+
+function loadGame(slot: string): void {
+  const data = saveManager.loadGame(slot);
+  if (data) {
+    // Restore player state
+    playerSystem.deserializePlayerState(data.player);
+    // Restore world seed
+    saveManager.setWorldSeed(data.metadata.worldSeed);
+    biomeManager = new BiomeManager(data.metadata.worldSeed);
+    // Enter gameplay
+    engine.changeState(GameState.Gameplay);
+  }
+}
+
+function startNewGame(): void {
+  // Generate new world seed
+  const seed = `chimeraland_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  saveManager.setWorldSeed(seed);
+  biomeManager = new BiomeManager(seed);
+
+  // Reset player
+  const playerComp = playerSystem.getPlayerComponent();
+  if (playerComp) {
+    playerComp.hp = playerComp.maxHp;
+    playerComp.stamina = playerComp.maxStamina;
+    playerComp.fury = 0;
+    playerComp.equippedWeaponIds = ['wooden_sword', null, null];
+    playerComp.activeWeaponIndex = 0;
+  }
+
+  // Clear terrain chunks
+  // terrainSystem.clear(); // Would need to implement
+
+  engine.changeState(GameState.Gameplay);
+}
+
+function quickSave(): void {
+  const playerData = playerSystem.serializePlayerState();
+  saveManager.quickSave();
+}
+
+function setupGraphicsSettingsUI(): void {
+  const container = document.getElementById('graphics-settings');
+  if (!container) return;
+
+  const settings = graphicsManager.getSettings();
+  const presets = graphicsManager.getPresetOptions();
+
+  container.innerHTML = `
+    <h3>Configurações Gráficas</h3>
+
+    <div class="setting-group">
+      <label>Preset: </label>
+      <select id="graphics-preset">
+        ${presets.map(p => `<option value="${p.value}" ${p.value === settings.preset ? 'selected' : ''}>${p.label}</option>`).join('')}
+      </select>
+      <p class="setting-desc">${presets.find(p => p.value === settings.preset)?.description}</p>
+    </div>
+
+    <div class="setting-group">
+      <label>Modo de Tela: </label>
+      <select id="screen-mode">
+        <option value="Borderless" ${settings.screenMode === 'Borderless' ? 'selected' : ''}>Sem Borda</option>
+        <option value="Fullscreen" ${settings.screenMode === 'Fullscreen' ? 'selected' : ''}>Tela Cheia</option>
+        <option value="Windowed" ${settings.screenMode === 'Windowed' ? 'selected' : ''}>Janela</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>V-Sync: </label>
+      <input type="checkbox" id="v-sync" ${settings.vSync ? 'checked' : ''}>
+    </div>
+
+    <div class="setting-group">
+      <label>Limite FPS: </label>
+      <select id="fps-limit">
+        <option value="0" ${settings.fpsLimit === 0 ? 'selected' : ''}>Ilimitado</option>
+        <option value="30" ${settings.fpsLimit === 30 ? 'selected' : ''}>30</option>
+        <option value="60" ${settings.fpsLimit === 60 ? 'selected' : ''}>60</option>
+        <option value="120" ${settings.fpsLimit === 120 ? 'selected' : ''}>120</option>
+        <option value="144" ${settings.fpsLimit === 144 ? 'selected' : ''}>144</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Qualidade de Textura: </label>
+      <select id="texture-quality">
+        <option value="Low" ${settings.textureQuality === 'Low' ? 'selected' : ''}>Baixa</option>
+        <option value="Medium" ${settings.textureQuality === 'Medium' ? 'selected' : ''}>Média</option>
+        <option value="High" ${settings.textureQuality === 'High' ? 'selected' : ''}>Alta</option>
+        <option value="Ultra" ${settings.textureQuality === 'Ultra' ? 'selected' : ''}>Ultra</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Qualidade de Sombras: </label>
+      <select id="shadow-quality">
+        <option value="Off" ${settings.shadowQuality === 'Off' ? 'selected' : ''}>Desligado</option>
+        <option value="Low" ${settings.shadowQuality === 'Low' ? 'selected' : ''}>Baixa</option>
+        <option value="Medium" ${settings.shadowQuality === 'Medium' ? 'selected' : ''}>Média</option>
+        <option value="High" ${settings.shadowQuality === 'High' ? 'selected' : ''}>Alta</option>
+        <option value="Ultra" ${settings.shadowQuality === 'Ultra' ? 'selected' : ''}>Ultra</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Distância de Renderização: </label>
+      <input type="range" id="render-distance" min="50" max="500" value="${settings.renderDistance}" step="10">
+      <span id="render-distance-value">${settings.renderDistance}m</span>
+    </div>
+
+    <div class="setting-group">
+      <label>Escala de Resolução: </label>
+      <input type="range" id="resolution-scale" min="0.5" max="1.0" value="${settings.resolutionScale}" step="0.05">
+      <span id="resolution-scale-value">${Math.round(settings.resolutionScale * 100)}%</span>
+    </div>
+
+    <div class="setting-group">
+      <label>Densidade de Folhagem: </label>
+      <input type="range" id="foliage-density" min="0.1" max="1.0" value="${settings.foliageDensity}" step="0.1">
+      <span id="foliage-density-value">${Math.round(settings.foliageDensity * 100)}%</span>
+    </div>
+
+    <div class="setting-group">
+      <label>Bloom: </label>
+      <input type="checkbox" id="bloom-enabled" ${settings.bloom ? 'checked' : ''}>
+    </div>
+
+    <div class="setting-group">
+      <label>Motion Blur: </label>
+      <input type="checkbox" id="motion-blur" ${settings.motionBlur ? 'checked' : ''}>
+    </div>
+
+    <button id="btn-apply-graphics" class="btn-primary">Aplicar</button>
+    <button id="btn-reset-graphics" class="btn-secondary">Restaurar Padrão</button>
+  `;
+
+  // Bind events
+  const presetSelect = document.getElementById('graphics-preset') as HTMLSelectElement;
+  const descEl = container.querySelector('.setting-desc');
+  presetSelect?.addEventListener('change', () => {
+    const preset = presets.find(p => p.value === presetSelect.value);
+    if (descEl && preset) descEl.textContent = preset.description;
+  });
+
+  document.getElementById('btn-apply-graphics')?.addEventListener('click', () => applyGraphicsSettings());
+  document.getElementById('btn-reset-graphics')?.addEventListener('click', () => {
+    graphicsManager.resetToDefaults();
+    setupGraphicsSettingsUI(); // Refresh UI
+  });
+
+  // Live preview for sliders
+  const bindSlider = (id: string, valueId: string, formatter?: (v: number) => string) => {
+    const slider = document.getElementById(id) as HTMLInputElement;
+    const valueEl = document.getElementById(valueId);
+    slider?.addEventListener('input', () => {
+      if (valueEl) valueEl.textContent = formatter ? formatter(slider.valueAsNumber) : slider.value;
+    });
+  };
+
+  bindSlider('render-distance', 'render-distance-value', v => `${v}m`);
+  bindSlider('resolution-scale', 'resolution-scale-value', v => `${Math.round(v * 100)}%`);
+  bindSlider('foliage-density', 'foliage-density-value', v => `${Math.round(v * 100)}%`);
+}
+
+function applyGraphicsSettings(): void {
+  const settings: Partial<any> = {
+    preset: (document.getElementById('graphics-preset') as HTMLSelectElement).value,
+    screenMode: (document.getElementById('screen-mode') as HTMLSelectElement).value,
+    vSync: (document.getElementById('v-sync') as HTMLInputElement).checked,
+    fpsLimit: parseInt((document.getElementById('fps-limit') as HTMLSelectElement).value),
+    textureQuality: (document.getElementById('texture-quality') as HTMLSelectElement).value,
+    shadowQuality: (document.getElementById('shadow-quality') as HTMLSelectElement).value,
+    renderDistance: (document.getElementById('render-distance') as HTMLInputElement).valueAsNumber,
+    resolutionScale: (document.getElementById('resolution-scale') as HTMLInputElement).valueAsNumber,
+    foliageDensity: (document.getElementById('foliage-density') as HTMLInputElement).valueAsNumber,
+    bloom: (document.getElementById('bloom-enabled') as HTMLInputElement).checked,
+    motionBlur: (document.getElementById('motion-blur') as HTMLInputElement).checked,
+  };
+
+  graphicsManager.setSettings(settings);
+  showMainMenu();
+}
+
+function loadGraphicsSettings(): void {
+  const saved = saveManager.loadGraphicsSettings();
+  if (saved) {
+    graphicsManager.setSettings(saved);
+  }
+}
+
+function setupHUD(): void {
+  // HUD updates handled in game loop
+  // Subscribe to graphics settings changes for HUD updates if needed
+}
+
+function formatPlayTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// ============================================================================
+// GAME LOOP INTEGRATION
+// ============================================================================
+
+// Hook into engine's variable update for HUD
+const originalVariableUpdate = engine?.variableUpdate?.bind(engine);
+if (engine) {
+  engine.variableUpdate = (dt: number) => {
+    originalVariableUpdate?.(dt);
+    updateHUD(dt);
+  };
+}
+
+function updateHUD(dt: number): void {
+  if (engine.getState() !== GameState.Gameplay) return;
+
+  const playerComp = playerSystem.getPlayerComponent();
+  if (!playerComp) return;
+
+  // Health
+  const healthFill = document.getElementById('health-fill');
+  const healthText = document.getElementById('health-text');
+  if (healthFill) healthFill.style.width = `${(playerComp.hp / playerComp.maxHp) * 100}%`;
+  if (healthText) healthText.textContent = `${Math.ceil(playerComp.hp)} / ${playerComp.maxHp}`;
+
+  // Stamina
+  const staminaFill = document.getElementById('stamina-fill');
+  const staminaText = document.getElementById('stamina-text');
+  if (staminaFill) staminaFill.style.width = `${(playerComp.stamina / playerComp.maxStamina) * 100}%`;
+  if (staminaText) staminaText.textContent = `${Math.ceil(playerComp.stamina)}`;
+
+  // Fury
+  const furyFill = document.getElementById('fury-fill');
+  if (furyFill) furyFill.style.width = `${(playerComp.fury / playerComp.maxFury) * 100}%`;
+
+  // Position/Debug
+  const posEl = document.getElementById('debug-position');
+  if (posEl && playerSystem.getPlayerComponent()) {
+    const transform = playerSystem['transformComp'];
+    if (transform) {
+      posEl.textContent = `Pos: ${transform.position.x.toFixed(1)}, ${transform.position.y.toFixed(1)}, ${transform.position.z.toFixed(1)}`;
     }
   }
 
-  healthFill.style.width = `${Math.max(0, player.health / player.maxHealth * 100)}%`;
-  stats.textContent = `VIDA ${Math.ceil(player.health)} · PONTOS ${score}`;
-  timeLabel.textContent = `DIA ${Math.floor(elapsed / 30) + 1}`;
-}
+  // FPS
+  const fpsEl = document.getElementById('debug-fps');
+  if (fpsEl) fpsEl.textContent = `FPS: ${engine.getFPS()}`;
 
-function drawBackground() {
-  const day = (elapsed % 30) / 30;
-  const night = Math.abs(day - 0.5) > 0.32;
-  ctx.fillStyle = night ? '#081426' : '#183a32';
-  ctx.fillRect(0, 0, innerWidth, innerHeight);
-  ctx.strokeStyle = night ? 'rgba(115,145,180,.10)' : 'rgba(255,255,255,.055)';
-  ctx.lineWidth = 1;
-  for (let x = -40; x < innerWidth + 40; x += 40) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, innerHeight); ctx.stroke();
-  }
-  for (let y = -40; y < innerHeight + 40; y += 40) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(innerWidth, y); ctx.stroke();
+  // Biome
+  const biomeEl = document.getElementById('debug-biome');
+  if (biomeEl) {
+    const dominant = biomeManager.getDominantBiome({ x: 0, y: 0, z: 0 }); // Would use player pos
+    biomeEl.textContent = `Bioma: ${dominant}`;
   }
 }
 
-function draw() {
-  ctx.save();
-  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
-  drawBackground();
+// ============================================================================
+// START
+// ============================================================================
 
-  for (const enemy of enemies) {
-    ctx.save();
-    ctx.translate(enemy.x, enemy.y);
-    ctx.rotate(enemy.angle);
-    ctx.fillStyle = '#7c3aed';
-    ctx.beginPath(); ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#c4b5fd';
-    ctx.beginPath(); ctx.arc(enemy.radius * 0.25, -enemy.radius * 0.25, enemy.radius * 0.24, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-    ctx.fillStyle = 'rgba(0,0,0,.55)';
-    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 9, enemy.radius * 2, 5);
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 9, enemy.radius * 2 * Math.max(0, enemy.health / enemy.maxHealth), 5);
-  }
-
-  ctx.save();
-  ctx.translate(player.x, player.y);
-  ctx.rotate(player.angle);
-  ctx.fillStyle = '#42d9c5';
-  ctx.beginPath(); ctx.arc(0, 0, player.radius, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#dffaf5';
-  ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(5, -7); ctx.lineTo(5, 7); ctx.closePath(); ctx.fill();
-  if (slashTimer > 0) {
-    ctx.strokeStyle = `rgba(255,255,255,${slashTimer / 0.16})`;
-    ctx.lineWidth = 8;
-    ctx.beginPath(); ctx.arc(0, 0, 75, -1.05, 1.05); ctx.stroke();
-  }
-  ctx.restore();
-  ctx.restore();
+// Wait for DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', main);
+} else {
+  main();
 }
 
-function loop(now: number) {
-  const dt = Math.min(0.033, (now - last) / 1000 || 0);
-  last = now;
-  if (running) update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-
-window.addEventListener('resize', resize);
-window.addEventListener('keydown', (event) => {
-  keys.add(event.code);
-  if (event.code === 'Space') { event.preventEventDefault?.(); attack(); }
-  if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') dash();
-});
-window.addEventListener('keyup', (event) => keys.delete(event.code));
-window.addEventListener('mousemove', (event) => { mouse.x = event.clientX; mouse.y = event.clientY; });
-window.addEventListener('mousedown', (event) => { if (event.button === 0) attack(); });
-
-const joystick = document.querySelector<HTMLDivElement>('#joystick')!;
-const stick = document.querySelector<HTMLDivElement>('#stick')!;
-let joystickId: number | null = null;
-joystick.addEventListener('touchstart', (event) => {
-  event.preventDefault();
-  joystickId = event.changedTouches[0].identifier;
-}, { passive: false });
-joystick.addEventListener('touchmove', (event) => {
-  event.preventDefault();
-  for (const touch of Array.from(event.changedTouches)) {
-    if (touch.identifier !== joystickId) continue;
-    const rect = joystick.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    let dx = touch.clientX - cx;
-    let dy = touch.clientY - cy;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const max = 42;
-    if (len > max) { dx = dx / len * max; dy = dy / len * max; }
-    stick.style.transform = `translate(${dx}px, ${dy}px)`;
-    touchMove = { x: dx / max, y: dy / max };
-    mouse.x = player.x + dx;
-    mouse.y = player.y + dy;
-  }
-}, { passive: false });
-const resetJoystick = (event: TouchEvent) => {
-  for (const touch of Array.from(event.changedTouches)) {
-    if (touch.identifier === joystickId) {
-      joystickId = null;
-      touchMove = { x: 0, y: 0 };
-      stick.style.transform = '';
-    }
-  }
-};
-joystick.addEventListener('touchend', resetJoystick);
-joystick.addEventListener('touchcancel', resetJoystick);
-document.querySelector<HTMLButtonElement>('#attackBtn')!.addEventListener('touchstart', (event) => { event.preventDefault(); attack(); }, { passive: false });
-document.querySelector<HTMLButtonElement>('#dashBtn')!.addEventListener('touchstart', (event) => { event.preventDefault(); dash(); }, { passive: false });
-
-document.querySelector<HTMLButtonElement>('#play')!.addEventListener('click', () => {
-  reset();
-  startScreen.style.display = 'none';
-  running = true;
-  showToast('Sobreviva à planície espiritual');
+// Global error handler
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
 });
 
-resize();
-requestAnimationFrame(loop);
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled rejection:', event.reason);
+});

@@ -1,66 +1,784 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#07111f" />
-    <title>ChimeraLand — Protótipo Jogável</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #07111f; }
-      body { font-family: Inter, system-ui, sans-serif; touch-action: none; }
-      canvas { display: block; width: 100%; height: 100%; }
-      #hud {
-        position: fixed; inset: 0; pointer-events: none; color: white;
-        text-shadow: 0 2px 5px rgba(0,0,0,.8); padding: 16px;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="ChimeraLand - Action RPG Sandbox 3D Prototype">
+  <meta name="theme-color" content="#081426">
+  <title>ChimeraLand 3D</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-dark: #081426;
+      --bg-card: #0d1f33;
+      --fg-primary: #e8f4f0;
+      --fg-secondary: #a0c4b8;
+      --accent: #42d9c5;
+      --accent-dim: #2eb8a0;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #1e3a4a;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-ui: 'Inter', system-ui, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg-dark: #e8f4f0;
+        --bg-card: #ffffff;
+        --fg-primary: #081426;
+        --fg-secondary: #3a5a50;
+        --accent: #0d9488;
+        --accent-dim: #0f766e;
+        --border: #c4e4dc;
       }
-      #top { display: flex; justify-content: space-between; align-items: flex-start; }
-      .bar { width: min(280px, 42vw); height: 18px; border: 2px solid rgba(255,255,255,.75); border-radius: 12px; background: rgba(0,0,0,.45); overflow: hidden; }
-      #healthFill { height: 100%; width: 100%; background: linear-gradient(90deg,#ef4444,#fb7185); transition: width .15s; }
-      #gameTitle { font-weight: 800; letter-spacing: .08em; font-size: clamp(12px,2vw,18px); }
-      #stats { margin-top: 6px; font-weight: 700; }
-      #toast { position: fixed; left: 50%; top: 18%; transform: translateX(-50%) translateY(-10px); opacity: 0; background: rgba(7,17,31,.88); border: 1px solid #42d9c5; border-radius: 999px; padding: 9px 18px; transition: .25s; font-weight: 700; }
-      #toast.show { opacity: 1; transform: translateX(-50%); }
-      #start {
-        position: fixed; inset: 0; display: grid; place-items: center; background:
-          radial-gradient(circle at 50% 40%, rgba(53,203,178,.18), transparent 30%), #07111f;
-        color: white; z-index: 10;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg-dark);
+      color: var(--fg-primary);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #game-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* ========================================================================
+       UI LAYERS
+       ======================================================================== */
+
+    .ui-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .ui-layer.hidden {
+      display: none !important;
+    }
+
+    .ui-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
+      animation: panelIn 0.2s ease-out;
+    }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ========================================================================
+       MAIN MENU
+       ======================================================================== */
+
+    #main-menu .ui-panel {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--fg-secondary);
+      margin-bottom: 2.5rem;
+      font-size: 1.1rem;
+    }
+
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-dark);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-dark);
+      color: var(--fg-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #dc2626;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--fg-secondary);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      color: var(--fg-primary);
+      background: var(--border);
+    }
+
+    .version {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* ========================================================================
+       LOAD MENU
+       ======================================================================== */
+
+    #load-menu .ui-panel {
+      max-width: 640px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-header h2 {
+      font-size: 1.5rem;
+    }
+
+    .save-slots {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .save-slot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      gap: 1rem;
+    }
+
+    .slot-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .slot-name {
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .slot-details {
+      font-size: 0.85rem;
+      color: var(--fg-secondary);
+    }
+
+    .slot-empty {
+      font-size: 0.85rem;
+      color: var(--fg-secondary);
+      font-style: italic;
+    }
+
+    .slot-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .slot-actions .btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    /* ========================================================================
+       SETTINGS MENU
+       ======================================================================== */
+
+    #settings-menu .ui-panel {
+      max-width: 560px;
+    }
+
+    .setting-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .setting-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .setting-group select,
+    .setting-group input[type="range"] {
+      width: 100%;
+      padding: 0.625rem;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg-primary);
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+    }
+
+    .setting-group select:focus,
+    .setting-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .setting-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 0.5rem;
+      accent-color: var(--accent);
+    }
+
+    .setting-group .setting-desc {
+      font-size: 0.8rem;
+      color: var(--fg-secondary);
+      margin-top: 0.35rem;
+    }
+
+    .setting-group .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .setting-group .slider-row input[type="range"] {
+      flex: 1;
+    }
+
+    .setting-group .slider-row span {
+      min-width: 4.5rem;
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========================================================================
+       PAUSE MENU
+       ======================================================================== */
+
+    #pause-menu .ui-panel {
+      max-width: 400px;
+    }
+
+    #pause-menu .menu-buttons {
+      margin-top: 1rem;
+    }
+
+    /* ========================================================================
+       LOADING SCREEN
+       ======================================================================== */
+
+    #loading-screen {
+      background: var(--bg-dark);
+      z-index: 100;
+    }
+
+    #loading-screen .ui-panel {
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .loading-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    #loading-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #7c3aed);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    #loading-text {
+      color: var(--fg-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ========================================================================
+       HUD
+       ======================================================================== */
+
+    #hud {
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .hud-top {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-bottom {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .stat-bar {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      min-width: 180px;
+      backdrop-filter: blur(8px);
+    }
+
+    .stat-bar.small {
+      min-width: 120px;
+    }
+
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--fg-secondary);
+      margin-bottom: 0.25rem;
+      font-family: var(--font-mono);
+    }
+
+    .stat-bar-bg {
+      height: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.2s ease;
+    }
+
+    .health .stat-bar-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .stamina .stat-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .fury .stat-bar-fill { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+    .hotbar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .hotbar-slot {
+      width: 56px;
+      height: 56px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--fg-secondary);
+      backdrop-filter: blur(8px);
+      transition: all 0.15s ease;
+    }
+
+    .hotbar-slot.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(66, 217, 197, 0.4);
+    }
+
+    .hotbar-slot .keybind {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 0.6rem;
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* Touch Controls */
+    #touch-controls {
+      pointer-events: auto;
+      z-index: 30;
+    }
+
+    #virtual-joystick {
+      pointer-events: auto;
+    }
+
+    #touch-attack,
+    #touch-dodge,
+    #touch-skill-0,
+    #touch-skill-1,
+    #touch-skill-2,
+    #touch-skill-3 {
+      pointer-events: auto;
+    }
+
+    #touch-look-area {
+      pointer-events: auto;
+    }
+
+    /* ========================================================================
+       DEBUG OVERLAY
+       ======================================================================== */
+
+    #debug-overlay {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 50;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--fg-secondary);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      min-width: 200px;
+      backdrop-filter: blur(8px);
+    }
+
+    #debug-overlay.hidden {
+      display: none;
+    }
+
+    .debug-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 0.25rem 0;
+    }
+
+    .debug-line .label { color: var(--fg-secondary); }
+    .debug-line .value { color: var(--fg-primary); text-align: right; }
+
+    /* ========================================================================
+       RESPONSIVE
+       ======================================================================== */
+
+    @media (max-width: 768px) {
+      .ui-panel {
+        margin: 1rem;
+        padding: 1.5rem;
+        border-radius: 8px;
       }
-      #startCard { text-align: center; max-width: 600px; padding: 28px; }
-      #start h1 { margin: 0 0 8px; font-size: clamp(38px,8vw,72px); letter-spacing: -.05em; }
-      #start p { color: #b6c3d2; margin: 0 auto 22px; line-height: 1.6; }
-      #play { border: 0; border-radius: 12px; background: #42d9c5; color: #07111f; font-size: 18px; font-weight: 900; padding: 14px 28px; cursor: pointer; }
-      #controls { position: fixed; inset: 0; pointer-events: none; display: none; }
-      .mobileBtn { pointer-events: auto; position: absolute; width: 76px; height: 76px; border: 2px solid rgba(255,255,255,.35); border-radius: 50%; background: rgba(7,17,31,.52); color: white; font-size: 28px; }
-      #attackBtn { right: 24px; bottom: 28px; background: rgba(239,68,68,.65); }
-      #dashBtn { right: 112px; bottom: 18px; }
-      #joystick { left: 28px; bottom: 28px; width: 120px; height: 120px; border: 2px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(7,17,31,.35); }
-      #stick { position: absolute; width: 54px; height: 54px; left: 33px; top: 33px; border-radius: 50%; background: rgba(255,255,255,.72); }
-      @media (pointer: coarse) { #controls { display: block; } }
-    </style>
-  </head>
-  <body>
-    <canvas id="game"></canvas>
-    <div id="hud">
-      <div id="top">
-        <div><div id="gameTitle">CHIMERALAND</div><div class="bar"><div id="healthFill"></div></div><div id="stats">VIDA 100 · PONTOS 0</div></div>
-        <div id="time">DIA 1</div>
+
+      .logo {
+        font-size: 2.5rem;
+      }
+
+      .btn {
+        padding: 1rem;
+      }
+
+      .stat-bar {
+        min-width: 140px;
+        padding: 0.375rem 0.75rem;
+      }
+
+      .hotbar-slot {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+      }
+
+      .setting-group .slider-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .setting-group .slider-row span {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hud-top, .hud-bottom {
+        left: 0.5rem;
+        right: 0.5rem;
+      }
+
+      .hotbar-slot {
+        width: 44px;
+        height: 44px;
+      }
+
+      .slot-actions {
+        flex-direction: column;
+      }
+    }
+
+    /* ========================================================================
+       ACCESSIBILITY
+       ======================================================================== */
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    .btn:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Game Container -->
+  <div id="game-container"></div>
+
+  <!-- Touch Controls -->
+  <div id="touch-controls"></div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="ui-layer">
+    <div class="ui-panel">
+      <div class="logo">ChimeraLand</div>
+      <div class="subtitle">Carregando mundo...</div>
+      <div class="loading-bar-container">
+        <div id="loading-bar"></div>
       </div>
-      <div id="toast"></div>
+      <div id="loading-text">Inicializando...</div>
     </div>
-    <div id="controls">
-      <div id="joystick"><div id="stick"></div></div>
-      <button id="dashBtn" class="mobileBtn">➤</button>
-      <button id="attackBtn" class="mobileBtn">⚔</button>
+  </div>
+
+  <!-- Main Menu -->
+  <div id="main-menu" class="ui-layer hidden">
+    <div class="ui-panel">
+      <div class="logo">ChimeraLand</div>
+      <div class="subtitle">Action-RPG Sandbox 3D Prototype</div>
+      <div class="menu-buttons">
+        <button id="btn-new-game" class="btn btn-primary">Novo Jogo</button>
+        <button id="btn-load-game" class="btn btn-secondary">Carregar Jogo</button>
+        <button id="btn-settings" class="btn btn-secondary">Opções Gráficas</button>
+        <button id="btn-quit" class="btn btn-ghost">Sair</button>
+      </div>
+      <div class="version">v0.2.0-3d-prototype</div>
     </div>
-    <div id="start">
-      <div id="startCard">
-        <h1>ChimeraLand</h1>
-        <p>Explore a planície, derrote criaturas espirituais e sobreviva o máximo que puder.<br><b>WASD / setas</b> para mover · <b>mouse</b> para mirar · <b>clique / Espaço</b> para atacar · <b>Shift</b> para avançar.</p>
-        <button id="play">JOGAR</button>
+  </div>
+
+  <!-- Load Menu -->
+  <div id="load-menu" class="ui-layer hidden">
+    <div class="ui-panel">
+      <div class="panel-header">
+        <h2>Carregar Jogo</h2>
+        <button id="btn-back-from-load" class="btn btn-ghost">Voltar</button>
+      </div>
+      <div id="load-slots" class="save-slots"></div>
+    </div>
+  </div>
+
+  <!-- Settings Menu -->
+  <div id="settings-menu" class="ui-layer hidden">
+    <div class="ui-panel">
+      <div class="panel-header">
+        <h2>Configurações Gráficas</h2>
+        <button id="btn-back-from-settings" class="btn btn-ghost">Voltar</button>
+      </div>
+      <div id="graphics-settings"></div>
+    </div>
+  </div>
+
+  <!-- Pause Menu -->
+  <div id="pause-menu" class="ui-layer hidden">
+    <div class="ui-panel">
+      <h2 style="margin-bottom: 1.5rem;">Pausado</h2>
+      <div class="menu-buttons">
+        <button id="btn-resume" class="btn btn-primary">Continuar</button>
+        <button id="btn-save" class="btn btn-secondary">Salvar Jogo</button>
+        <button id="btn-load" class="btn btn-secondary">Carregar Jogo</button>
+        <button id="btn-pause-settings" class="btn btn-secondary">Opções Gráficas</button>
+        <button id="btn-main-menu" class="btn btn-danger">Menu Principal</button>
       </div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="ui-layer hidden">
+    <div class="hud-top">
+      <div id="debug-biome" class="stat-bar" style="min-width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
+        Bioma: Planícies Espirituais
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="stat-bar health">
+        <div class="stat-label">
+          <span>Vida</span>
+          <span id="health-text">100 / 100</span>
+        </div>
+        <div class="stat-bar-bg">
+          <div id="health-fill" class="stat-bar-fill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="hotbar" style="margin: 0 1rem;">
+        <div class="hotbar-slot active" title="Espada de Treino">
+          ⚔️
+          <span class="keybind">1</span>
+        </div>
+        <div class="hotbar-slot" title="Vazio">
+          <span class="keybind">2</span>
+        </div>
+        <div class="hotbar-slot" title="Vazio">
+          <span class="keybind">3</span>
+        </div>
+        <div class="hotbar-slot" title="Poção de Vida">
+          🧪
+          <span class="keybind">Q</span>
+        </div>
+        <div class="hotbar-slot" title="Poção de Vigor">
+          🧪
+          <span class="keybind">E</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <div class="stat-bar stamina small">
+          <div class="stat-label">
+            <span>Vigor</span>
+            <span id="stamina-text">100</span>
+          </div>
+          <div class="stat-bar-bg">
+            <div id="stamina-fill" class="stat-bar-fill" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="stat-bar fury small">
+          <div class="stat-label">
+            <span>Fúria</span>
+            <span></span>
+          </div>
+          <div class="stat-bar-bg">
+            <div id="fury-fill" class="stat-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Overlay -->
+  <div id="debug-overlay" class="hidden">
+    <div class="debug-line"><span class="label">FPS:</span><span id="debug-fps" class="value">0</span></div>
+    <div class="debug-line"><span class="label">Pos:</span><span id="debug-position" class="value">0, 0, 0</span></div>
+    <div class="debug-line"><span class="label">Bioma:</span><span id="debug-biome" class="value">-</span></div>
+    <div class="debug-line"><span class="label">Estado:</span><span id="debug-state" class="value">-</span></div>
+    <div class="debug-line"><span class="label">Chunks:</span><span id="debug-chunks" class="value">0</span></div>
+    <div class="debug-line"><span class="label">Entidades:</span><span id="debug-entities" class="value">0</span></div>
+  </div>
+
+  <!-- Module Entry -->
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
