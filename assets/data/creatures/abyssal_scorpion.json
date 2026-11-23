@@ -1,0 +1,309 @@
+{
+  "id": "abyssal_scorpion",
+  "name": "Escorpião Abissal",
+  "biome": ["deep_ocean", "toxic_swamp", "volcanic_wastes", "crystal_caves"],
+  "level": 12,
+  "baseHP": 1500,
+  "baseDamage": 70,
+  "baseDefense": 60,
+  "basePoise": 300,
+  "moveSpeed": 4,
+  "attackRange": 4,
+  "aggroRange": 15,
+  "leashRange": 30,
+  "patrolRadius": 10,
+  "size": "large",
+  "anatomy": {
+    "bodyParts": [
+      {
+        "id": "head",
+        "name": "Prosoma (Cabeça)",
+        "boneName": "Head",
+        "hpMultiplier": 0.2,
+        "armorMultiplier": 2.0,
+        "isVital": true,
+        "isWeakPoint": true,
+        "destroyEffect": "head_break_scorpion",
+        "destroyLoot": [
+          { "itemId": "scorpion_mandible", "minQuantity": 1, "maxQuantity": 2, "chance": 0.8 },
+          { "itemId": "poison_sac", "minQuantity": 1, "maxQuantity": 2, "chance": 0.6 },
+          { "itemId": "abyssal_essence", "minQuantity": 1, "maxQuantity": 1, "chance": 0.3 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_venom_spray"]
+      },
+      {
+        "id": "left_claw",
+        "name": "Garra Esquerda",
+        "boneName": "LeftClaw",
+        "hpMultiplier": 0.18,
+        "armorMultiplier": 2.5,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "claw_break",
+        "destroyLoot": [
+          { "itemId": "scorpion_claw", "minQuantity": 1, "maxQuantity": 1, "chance": 0.7 },
+          { "itemId": "chitin_plate", "minQuantity": 2, "maxQuantity": 4, "chance": 0.5 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "right_claw",
+        "name": "Garra Direita",
+        "boneName": "RightClaw",
+        "hpMultiplier": 0.18,
+        "armorMultiplier": 2.5,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "claw_break",
+        "destroyLoot": [
+          { "itemId": "scorpion_claw", "minQuantity": 1, "maxQuantity": 1, "chance": 0.7 },
+          { "itemId": "chitin_plate", "minQuantity": 2, "maxQuantity": 4, "chance": 0.5 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "stinger",
+        "name": "Ferrão",
+        "boneName": "Stinger",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 1.0,
+        "isVital": false,
+        "isWeakPoint": true,
+        "destroyEffect": "stinger_break",
+        "destroyLoot": [
+          { "itemId": "scorpion_stinger", "minQuantity": 1, "maxQuantity": 1, "chance": 0.9 },
+          { "itemId": "deadly_venom", "minQuantity": 1, "maxQuantity": 3, "chance": 0.6 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_deadly_sting"]
+      },
+      {
+        "id": "tail_segments",
+        "name": "Segmentos da Cauda",
+        "boneName": "TailBase",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 1.5,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "tail_segment_break",
+        "destroyLoot": [
+          { "itemId": "chitin_plate", "minQuantity": 1, "maxQuantity": 2, "chance": 0.5 }
+        ],
+        "staggerOnDestroy": "light",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "carapace",
+        "name": "Carapaça",
+        "boneName": "Spine",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 3.0,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "carapace_crack",
+        "destroyLoot": [
+          { "itemId": "heavy_chitin", "minQuantity": 3, "maxQuantity": 6, "chance": 0.8 },
+          { "itemId": "abyssal_essence", "minQuantity": 1, "maxQuantity": 2, "chance": 0.4 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": ["skill_iron_carapace"]
+      }
+    ],
+    "sockets": [
+      {
+        "id": "back",
+        "boneName": "Spine",
+        "type": "back",
+        "compatibleParts": ["eagle_wings", "wolf_mane", "dragon_wings"],
+        "offset": { "x": 0, "y": 0.5, "z": -0.4 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      },
+      {
+        "id": "tail_tip",
+        "boneName": "Stinger",
+        "type": "tail",
+        "compatibleParts": ["eagle_tail_feathers", "wolf_tail"],
+        "offset": { "x": 0, "y": 0, "z": 0.5 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      }
+    ],
+    "movementType": "amphibious",
+    "canClimb": true,
+    "canSwim": true
+  },
+  "attacks": [
+    {
+      "id": "claw_strike",
+      "name": "Golpe de Garra",
+      "damageMultiplier": 1.2,
+      "range": 4,
+      "angle": 60,
+      "startupTime": 0.4,
+      "activeTime": 0.3,
+      "recoveryTime": 0.6,
+      "poiseDamage": 35,
+      "knockback": 8,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 1.5, "y": 1, "z": 2 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2.5 },
+          "shape": "box"
+        }
+      ],
+      "animation": "scorpion_claw_strike",
+      "effects": ["claw_impact", "poison_splash"],
+      "cooldown": 3,
+      "minDistance": 0,
+      "maxDistance": 4.5,
+      "requiresTarget": true
+    },
+    {
+      "id": "double_claw",
+      "name": "Garra Dupla",
+      "damageMultiplier": 1.0,
+      "range": 4,
+      "angle": 90,
+      "startupTime": 0.5,
+      "activeTime": 0.4,
+      "recoveryTime": 1.0,
+      "poiseDamage": 30,
+      "knockback": 6,
+      "hitboxCount": 2,
+      "hitboxes": [
+        {
+          "offset": { "x": -1.5, "y": 1, "z": 2 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2.5 },
+          "shape": "box"
+        },
+        {
+          "offset": { "x": 1.5, "y": 1, "z": 2 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2.5 },
+          "shape": "box"
+        }
+      ],
+      "animation": "scorpion_double_claw",
+      "effects": ["claw_impact_x2", "ground_slam_small"],
+      "cooldown": 5,
+      "minDistance": 0,
+      "maxDistance": 4.5,
+      "requiresTarget": true
+    },
+    {
+      "id": "stinger_thrust",
+      "name": "Estocada de Ferrão",
+      "damageMultiplier": 1.8,
+      "range": 5,
+      "angle": 30,
+      "startupTime": 0.6,
+      "activeTime": 0.3,
+      "recoveryTime": 1.2,
+      "poiseDamage": 50,
+      "knockback": 10,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1, "z": 3.5 },
+          "size": { "x": 1, "y": 1, "z": 4 },
+          "shape": "capsule"
+        }
+      ],
+      "animation": "scorpion_sting",
+      "effects": ["sting_impact", "venom_inject", "poison_cloud"],
+      "cooldown": 8,
+      "minDistance": 2,
+      "maxDistance": 6,
+      "requiresTarget": true
+    },
+    {
+      "id": "venom_spray",
+      "name": "Jato de Veneno",
+      "damageMultiplier": 0.5,
+      "range": 8,
+      "angle": 45,
+      "startupTime": 0.5,
+      "activeTime": 1.5,
+      "recoveryTime": 1.0,
+      "poiseDamage": 5,
+      "knockback": 0,
+      "hitboxCount": 0,
+      "hitboxes": [],
+      "animation": "scorpion_venom_spray",
+      "effects": ["venom_cone", "poison_pool"],
+      "cooldown": 12,
+      "minDistance": 3,
+      "maxDistance": 10,
+      "requiresTarget": true
+    },
+    {
+      "id": "burrow_ambush",
+      "name": "Emboscada Subterrânea",
+      "damageMultiplier": 2.5,
+      "range": 0,
+      "angle": 360,
+      "startupTime": 2.0,
+      "activeTime": 0.5,
+      "recoveryTime": 2.0,
+      "poiseDamage": 80,
+      "knockback": 20,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 0, "z": 0 },
+          "size": { "x": 5, "y": 3, "z": 5 },
+          "shape": "sphere"
+        }
+      ],
+      "animation": "scorpion_burrow",
+      "effects": ["ground_rupture", "sand_explosion", "stun_wave"],
+      "cooldown": 25,
+      "minDistance": 0,
+      "maxDistance": 0,
+      "requiresTarget": false
+    }
+  ],
+  "skills": ["skill_venom_spray", "skill_burrow", "skill_iron_carapace", "skill_poison_immunity"],
+  "lootTable": [
+    { "itemId": "scorpion_chitin", "minQuantity": 5, "maxQuantity": 10, "chance": 1.0 },
+    { "itemId": "scorpion_venom", "minQuantity": 2, "maxQuantity": 5, "chance": 0.8 },
+    { "itemId": "abyssal_essence", "minQuantity": 2, "maxQuantity": 4, "chance": 0.5 },
+    { "itemId": "deadly_venom", "minQuantity": 0, "maxQuantity": 1, "chance": 0.15 },
+    { "itemId": "scorpion_stinger", "minQuantity": 0, "maxQuantity": 1, "chance": 0.1 }
+  ],
+  "captureDifficulty": 0.2,
+  "mutationParts": [
+    {
+      "sourceCreatureId": "sky_eagle",
+      "bodyPartId": "wings",
+      "targetSocket": "back",
+      "chance": 0.1,
+      "isRare": true,
+      "statBonuses": { "speed": 3, "elementalResist": { "physical": 30 } },
+      "unlockedSkills": ["skill_aerial_strike", "skill_wind_veil"],
+      "visualMesh": "scorpion_wings",
+      "visualScale": { "x": 1.2, "y": 1.2, "z": 1.2 },
+      "visualOffset": { "x": 0, "y": 0.5, "z": -0.4 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    },
+    {
+      "sourceCreatureId": "spirit_wolf",
+      "bodyPartId": "spirit_core",
+      "targetSocket": "back",
+      "chance": 0.05,
+      "isRare": true,
+      "statBonuses": { "hp": 300, "elementalResist": { "holy": 50, "shadow": 50 } },
+      "unlockedSkills": ["skill_spirit_link", "skill_soul_devour"],
+      "visualMesh": "scorpion_spirit_core",
+      "visualScale": { "x": 1, "y": 1, "z": 1 },
+      "visualOffset": { "x": 0, "y": 0.5, "z": -0.4 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    }
+  ],
+  "isBoss": false,
+  "isRare": true,
+  "spawnWeight": 30,
+  "timeOfDay": "night"
+}

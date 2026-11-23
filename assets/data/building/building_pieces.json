@@ -1,0 +1,459 @@
+{
+  "pieces": [
+    {
+      "id": "foundation_square",
+      "name": "Fundação Quadrada",
+      "type": "foundation",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 0.3, "z": 1 },
+      "sockets": [
+        { "id": "top", "localPosition": { "x": 0, "y": 0.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor", "pillar", "stairs"], "maxConnections": 4 },
+        { "id": "north", "localPosition": { "x": 0, "y": 0, "z": -0.5 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": -1 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "south", "localPosition": { "x": 0, "y": 0, "z": 0.5 }, "localRotation": { "x": 0, "y": 3.14159, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "east", "localPosition": { "x": 0.5, "y": 0, "z": 0 }, "localRotation": { "x": 0, "y": 1.5708, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 1, "y": 0, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "west", "localPosition": { "x": -0.5, "y": 0, "z": 0 }, "localRotation": { "x": 0, "y": -1.5708, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": -1, "y": 0, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.5, "z": 0 }, "localRotation": { "x": 3.14159, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["pillar", "foundation"], "maxConnections": 4 }
+      ],
+      "craftCost": [
+        { "itemId": "stone", "quantity": 20 },
+        { "itemId": "wood", "quantity": 10 }
+      ],
+      "requiredLevel": 1,
+      "requiredTech": [],
+      "health": 500,
+      "stability": 1.0,
+      "weight": 50,
+      "model": "foundation_square",
+      "materials": ["stone", "wood"],
+      "previewColor": 0x8B7355,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": true,
+      "snapsToCeiling": false,
+      "requiresFoundation": false
+    },
+    {
+      "id": "foundation_triangle",
+      "name": "Fundação Triangular",
+      "type": "foundation_tri",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 0.3, "z": 1 },
+      "sockets": [
+        { "id": "top", "localPosition": { "x": 0, "y": 0.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor", "pillar", "stairs"], "maxConnections": 3 },
+        { "id": "edge_1", "localPosition": { "x": 0, "y": 0, "z": -0.5 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": -1 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "edge_2", "localPosition": { "x": 0.433, "y": 0, "z": 0.25 }, "localRotation": { "x": 0, "y": 2.094, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0.866, "y": 0, "z": 0.5 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "edge_3", "localPosition": { "x": -0.433, "y": 0, "z": 0.25 }, "localRotation": { "x": 0, "y": -2.094, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": -0.866, "y": 0, "z": 0.5 }, "gender": "male", "allowedTypes": ["wall", "wall_window", "wall_door", "door"], "maxConnections": 1 },
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.5, "z": 0 }, "localRotation": { "x": 3.14159, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["pillar", "foundation"], "maxConnections": 3 }
+      ],
+      "craftCost": [
+        { "itemId": "stone", "quantity": 15 },
+        { "itemId": "wood", "quantity": 8 }
+      ],
+      "requiredLevel": 1,
+      "requiredTech": [],
+      "health": 400,
+      "stability": 0.9,
+      "weight": 40,
+      "model": "foundation_triangle",
+      "materials": ["stone", "wood"],
+      "previewColor": 0x8B7355,
+      "canRotate": true,
+      "rotationSnap": 120,
+      "canMirror": true,
+      "snapsToGround": true,
+      "snapsToCeiling": false,
+      "requiresFoundation": false
+    },
+    {
+      "id": "wall",
+      "name": "Parede",
+      "type": "wall",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 3, "z": 0.2 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor", "foundation"], "maxConnections": 1 },
+        { "id": "top", "localPosition": { "x": 0, "y": 1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "roof", "ceiling"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 0.1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["door", "window", "decoration"], "maxConnections": 2 },
+        { "id": "back", "localPosition": { "x": 0, "y": 0, "z": -0.1 }, "localRotation": { "x": 0, "y": 3.14159, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": -1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 15 },
+        { "itemId": "stone", "quantity": 5 }
+      ],
+      "requiredLevel": 1,
+      "requiredTech": [],
+      "health": 300,
+      "stability": 0.8,
+      "weight": 30,
+      "model": "wall",
+      "materials": ["wood", "stone"],
+      "previewColor": 0xA08060,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "wall_window",
+      "name": "Parede com Janela",
+      "type": "wall_window",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 3, "z": 0.2 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor", "foundation"], "maxConnections": 1 },
+        { "id": "top", "localPosition": { "x": 0, "y": 1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "roof", "ceiling"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 0.1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 },
+        { "id": "back", "localPosition": { "x": 0, "y": 0, "z": -0.1 }, "localRotation": { "x": 0, "y": 3.14159, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": -1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 12 },
+        { "itemId": "glass", "quantity": 5 },
+        { "itemId": "stone", "quantity": 3 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["glassmaking"],
+      "health": 250,
+      "stability": 0.75,
+      "weight": 25,
+      "model": "wall_window",
+      "materials": ["wood", "glass"],
+      "previewColor": 0x87CEEB,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "wall_door",
+      "name": "Parede com Porta",
+      "type": "wall_door",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 3, "z": 0.2 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor", "foundation"], "maxConnections": 1 },
+        { "id": "top", "localPosition": { "x": 0, "y": 1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "roof", "ceiling"], "maxConnections": 1 },
+        { "id": "doorway", "localPosition": { "x": 0, "y": -0.5, "z": 0.1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "door", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "female", "allowedTypes": ["door"], "maxConnections": 1 },
+        { "id": "back", "localPosition": { "x": 0, "y": 0, "z": -0.1 }, "localRotation": { "x": 0, "y": 3.14159, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": -1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 15 },
+        { "itemId": "iron", "quantity": 5 },
+        { "itemId": "stone", "quantity": 3 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["carpentry"],
+      "health": 280,
+      "stability": 0.75,
+      "weight": 30,
+      "model": "wall_door",
+      "materials": ["wood", "iron"],
+      "previewColor": 0x8B4513,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "door",
+      "name": "Porta",
+      "type": "door",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 2, "z": 0.15 },
+      "sockets": [
+        { "id": "hinge", "localPosition": { "x": -0.45, "y": 0, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "door", "direction": { "x": -1, "y": 0, "z": 0 }, "gender": "male", "allowedTypes": ["wall_door"], "maxConnections": 1 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 10 },
+        { "itemId": "iron", "quantity": 3 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["carpentry"],
+      "health": 150,
+      "stability": 0.5,
+      "weight": 15,
+      "model": "door",
+      "materials": ["wood", "iron"],
+      "previewColor": 0x8B4513,
+      "canRotate": false,
+      "rotationSnap": 0,
+      "canMirror": true,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": false
+    },
+    {
+      "id": "stairs",
+      "name": "Escada",
+      "type": "stairs",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 3, "z": 2 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1.5, "z": 1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "stair", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["floor", "foundation"], "maxConnections": 1 },
+        { "id": "top", "localPosition": { "x": 0, "y": 1.5, "z": -1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "stair", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["floor", "ceiling"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 1.1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "wall", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["wall", "decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 20 },
+        { "itemId": "stone", "quantity": 10 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["architecture"],
+      "health": 350,
+      "stability": 0.85,
+      "weight": 40,
+      "model": "stairs",
+      "materials": ["wood", "stone"],
+      "previewColor": 0xA08060,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "roof",
+      "name": "Telha",
+      "type": "roof",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 0.5, "z": 1 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.25, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "roof", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["wall"], "maxConnections": 4 },
+        { "id": "top", "localPosition": { "x": 0, "y": 0.25, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "roof", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["roof", "decoration"], "maxConnections": 4 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 10 },
+        { "itemId": "thatch", "quantity": 5 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["roofing"],
+      "health": 200,
+      "stability": 0.6,
+      "weight": 20,
+      "model": "roof",
+      "materials": ["wood", "thatch"],
+      "previewColor": 0x8B4513,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": true,
+      "requiresFoundation": false
+    },
+    {
+      "id": "pillar",
+      "name": "Pilar",
+      "type": "pillar",
+      "category": "structure",
+      "gridSize": { "x": 0.3, "y": 3, "z": 0.3 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "pillar", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["foundation", "floor"], "maxConnections": 1 },
+        { "id": "top", "localPosition": { "x": 0, "y": 1.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "pillar", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["floor", "ceiling", "roof"], "maxConnections": 1 },
+        { "id": "side", "localPosition": { "x": 0.15, "y": 0, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "any", "direction": { "x": 1, "y": 0, "z": 0 }, "gender": "neutral", "allowedTypes": ["wall", "decoration"], "maxConnections": 4 }
+      ],
+      "craftCost": [
+        { "itemId": "stone", "quantity": 15 },
+        { "itemId": "wood", "quantity": 5 }
+      ],
+      "requiredLevel": 1,
+      "requiredTech": [],
+      "health": 400,
+      "stability": 0.95,
+      "weight": 35,
+      "model": "pillar",
+      "materials": ["stone", "wood"],
+      "previewColor": 0x8B7355,
+      "canRotate": false,
+      "rotationSnap": 0,
+      "canMirror": false,
+      "snapsToGround": true,
+      "snapsToCeiling": true,
+      "requiresFoundation": true
+    },
+    {
+      "id": "floor",
+      "name": "Piso",
+      "type": "floor",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 0.2, "z": 1 },
+      "sockets": [
+        { "id": "top", "localPosition": { "x": 0, "y": 0.1, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["wall", "floor", "decoration", "crafting"], "maxConnections": 4 },
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.1, "z": 0 }, "localRotation": { "x": 3.14159, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["pillar", "foundation", "floor"], "maxConnections": 4 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 10 },
+        { "itemId": "stone", "quantity": 5 }
+      ],
+      "requiredLevel": 1,
+      "requiredTech": [],
+      "health": 250,
+      "stability": 0.7,
+      "weight": 20,
+      "model": "floor",
+      "materials": ["wood"],
+      "previewColor": 0xA08060,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "ceiling",
+      "name": "Teto",
+      "type": "ceiling",
+      "category": "structure",
+      "gridSize": { "x": 1, "y": 0.2, "z": 1 },
+      "sockets": [
+        { "id": "top", "localPosition": { "x": 0, "y": 0.1, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "ceiling", "direction": { "x": 0, "y": 1, "z": 0 }, "gender": "male", "allowedTypes": ["roof", "decoration"], "maxConnections": 4 },
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.1, "z": 0 }, "localRotation": { "x": 3.14159, "y": 0, "z": 0, "w": 1 }, "type": "ceiling", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["wall", "floor"], "maxConnections": 4 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 8 },
+        { "itemId": "thatch", "quantity": 3 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["roofing"],
+      "health": 200,
+      "stability": 0.6,
+      "weight": 15,
+      "model": "ceiling",
+      "materials": ["wood", "thatch"],
+      "previewColor": 0x8B4513,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": true,
+      "requiresFoundation": false
+    },
+    {
+      "id": "forge",
+      "name": "Forja",
+      "type": "forge",
+      "category": "crafting",
+      "gridSize": { "x": 2, "y": 2, "z": 2 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -1, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["floor", "foundation"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 1.1 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "any", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "iron", "quantity": 30 },
+        { "itemId": "stone", "quantity": 20 },
+        { "itemId": "fire_essence", "quantity": 10 },
+        { "itemId": "coal", "quantity": 20 }
+      ],
+      "requiredLevel": 5,
+      "requiredTech": ["blacksmithing"],
+      "health": 800,
+      "stability": 0.9,
+      "weight": 200,
+      "model": "forge",
+      "materials": ["iron", "stone"],
+      "previewColor": 0xFF4500,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "alchemy",
+      "name": "Bancada de Alquimia",
+      "type": "alchemy",
+      "category": "crafting",
+      "gridSize": { "x": 2, "y": 1.5, "z": 1 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.75, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["floor", "foundation"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 0.6 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "any", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 2 }
+      ],
+      "craftCost": [
+        { "itemId": "glass", "quantity": 20 },
+        { "itemId": "alchemical_base", "quantity": 10 },
+        { "itemId": "crystal_shard", "quantity": 10 },
+        { "itemId": "wood", "quantity": 15 }
+      ],
+      "requiredLevel": 5,
+      "requiredTech": ["alchemy"],
+      "health": 500,
+      "stability": 0.8,
+      "weight": 100,
+      "model": "alchemy_table",
+      "materials": ["glass", "wood"],
+      "previewColor": 0x9932CC,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "storage",
+      "name": "Baú Grande",
+      "type": "storage",
+      "category": "utility",
+      "gridSize": { "x": 1, "y": 1, "z": 1 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.5, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["floor", "foundation"], "maxConnections": 1 },
+        { "id": "front", "localPosition": { "x": 0, "y": 0, "z": 0.6 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "any", "direction": { "x": 0, "y": 0, "z": 1 }, "gender": "neutral", "allowedTypes": ["decoration"], "maxConnections": 1 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 20 },
+        { "itemId": "iron", "quantity": 5 }
+      ],
+      "requiredLevel": 2,
+      "requiredTech": ["carpentry"],
+      "health": 300,
+      "stability": 0.7,
+      "weight": 50,
+      "model": "storage_chest_large",
+      "materials": ["wood", "iron"],
+      "previewColor": 0x8B4513,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": false,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    },
+    {
+      "id": "bed",
+      "name": "Cama",
+      "type": "bed",
+      "category": "utility",
+      "gridSize": { "x": 2, "y": 0.5, "z": 1 },
+      "sockets": [
+        { "id": "bottom", "localPosition": { "x": 0, "y": -0.25, "z": 0 }, "localRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }, "type": "floor", "direction": { "x": 0, "y": -1, "z": 0 }, "gender": "female", "allowedTypes": ["floor", "foundation"], "maxConnections": 1 }
+      ],
+      "craftCost": [
+        { "itemId": "wood", "quantity": 15 },
+        { "itemId": "cloth", "quantity": 10 },
+        { "itemId": "feather", "quantity": 20 }
+      ],
+      "requiredLevel": 3,
+      "requiredTech": ["weaving"],
+      "health": 200,
+      "stability": 0.5,
+      "weight": 30,
+      "model": "bed",
+      "materials": ["wood", "cloth"],
+      "previewColor": 0xFFD700,
+      "canRotate": true,
+      "rotationSnap": 90,
+      "canMirror": true,
+      "snapsToGround": false,
+      "snapsToCeiling": false,
+      "requiresFoundation": true
+    }
+  ]
+}

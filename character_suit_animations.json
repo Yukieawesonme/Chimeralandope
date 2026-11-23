@@ -1,0 +1,26 @@
+{
+  "model": "character_suit.glb",
+  "generatorScript": "character_suit_generator.js",
+  "standaloneViewer": "character_suit_viewer.html",
+  "inspectionScript": "character_suit_inspect.py",
+  "fileSizeBytes": 95232,
+  "fileSizeFormatted": "93 KB",
+  "hasSkeleton": false,
+  "meshesCount": 47,
+  "materialsCount": 11,
+  "nodesCount": 65,
+  "animationsCount": 2,
+  "animations": [
+    {
+      "name": "breathing",
+      "channels": 2,
+      "samplers": 2
+    },
+    {
+      "name": "armSway",
+      "channels": 0,
+      "samplers": 0
+    }
+  ],
+  "generatedAt": "2026-11-23T15:49:05Z"
+}

@@ -1,0 +1,217 @@
+{
+  "version": "0.1.0-prototype",
+  "buildDate": "2026-11-23",
+  "gameName": "ChimeraLand",
+  "description": "Action-RPG Sandbox de Mundo Aberto - Protótipo Jogável",
+
+  "engine": {
+    "targetFPS": 60,
+    "fixedTimestep": 0.016666666666666666,
+    "maxSubsteps": 4,
+    "physicsEngine": "builtin",
+    "renderEngine": "webgl2"
+  },
+
+  "player": {
+    "startingHealth": 100,
+    "startingStamina": 100,
+    "startingFury": 0,
+    "startingLevel": 1,
+    "startingPosition": { "x": 0, "y": 10, "z": 0 },
+    "startingWeapons": [
+      "weapon_sword_long",
+      "weapon_longbow",
+      "weapon_elemental_staff"
+    ],
+    "startingSkills": [
+      "skill_lightning_dash",
+      "skill_piercing_shot",
+      "skill_meteor_rain"
+    ],
+    "inventorySize": 40,
+    "quickSlots": 8
+  },
+
+  "world": {
+    "seed": 123456789,
+    "size": { "x": 8192, "z": 8192 },
+    "chunkSize": 64,
+    "chunkHeight": 32,
+    "renderDistance": 4,
+    "loadDistance": 5,
+    "unloadDistance": 6,
+    "biomeBlendRadius": 16,
+    "dayLength": 1200,
+    "dawnHour": 5,
+    "duskHour": 19,
+    "gravity": -9.81,
+    "terminalVelocity": 50
+  },
+
+  "camera": {
+    "defaultDistance": 4,
+    "minDistance": 1.5,
+    "maxDistance": 8,
+    "heightOffset": 1.2,
+    "pitchMin": -70,
+    "pitchMax": 70,
+    "rotationSpeed": 3,
+    "zoomSpeed": 5,
+    "smoothTime": 0.1,
+    "collisionCheck": true,
+    "shakeTraumaDecay": 0.8,
+    "shakeFrequency": 25,
+    "shakeAmplitude": 1
+  },
+
+  "input": {
+    "keyboard": {
+      "moveForward": "KeyW",
+      "moveBackward": "KeyS",
+      "moveLeft": "KeyA",
+      "moveRight": "KeyD",
+      "jump": "Space",
+      "dash": "ShiftLeft",
+      "attack": "Mouse0",
+      "heavyAttack": "Mouse1",
+      "skill1": "Digit1",
+      "skill2": "Digit2",
+      "skill3": "Digit3",
+      "ultimate": "KeyF",
+      "interact": "KeyE",
+      "swapWeaponNext": "KeyQ",
+      "swapWeaponPrev": "KeyR",
+      "weaponSlot1": "Digit1",
+      "weaponSlot2": "Digit2",
+      "weaponSlot3": "Digit3",
+      "buildMode": "KeyB",
+      "cameraReset": "KeyC",
+      "sprint": "ShiftLeft"
+    },
+    "gamepad": {
+      "move": "LeftStick",
+      "look": "RightStick",
+      "jump": "ButtonSouth",
+      "dash": "ButtonEast",
+      "attack": "ButtonWest",
+      "heavyAttack": "ButtonNorth",
+      "skill1": "LeftTrigger",
+      "skill2": "RightTrigger",
+      "skill3": "LeftShoulder",
+      "ultimate": "RightShoulder",
+      "interact": "ButtonEast",
+      "swapWeapon": "DPadUp",
+      "buildMode": "ButtonStart",
+      "cameraReset": "ButtonSelect"
+    },
+    "touch": {
+      "joystickZone": { "x": 0.1, "y": 0.5, "width": 0.4, "height": 0.4 },
+      "attackButton": { "x": 0.85, "y": 0.65, "size": 0.12 },
+      "skill1Button": { "x": 0.75, "y": 0.75, "size": 0.08 },
+      "skill2Button": { "x": 0.85, "y": 0.85, "size": 0.08 },
+      "skill3Button": { "x": 0.95, "y": 0.75, "size": 0.08 },
+      "ultimateButton": { "x": 0.9, "y": 0.5, "size": 0.1 },
+      "dashButton": { "x": 0.7, "y": 0.65, "size": 0.1 },
+      "jumpButton": { "x": 0.7, "y": 0.5, "size": 0.1 },
+      "interactButton": { "x": 0.5, "y": 0.8, "size": 0.1 },
+      "swapWeaponButton": { "x": 0.1, "y": 0.85, "size": 0.1 },
+      "buildModeButton": { "x": 0.05, "y": 0.05, "size": 0.08 }
+    }
+  },
+
+  "ui": {
+    "hudScale": 1.0,
+    "showDamageNumbers": true,
+    "showEnemyHealthBars": true,
+    "showSkillCooldowns": true,
+    "showComboCounter": true,
+    "showFuryBar": true,
+    "showPetStatus": true,
+    "damageNumberLifetime": 1.5,
+    "damageNumberSpeed": 2,
+    "damageNumberArcHeight": 1,
+    "healthBarFadeDelay": 3,
+    "skillCooldownAlpha": 0.4,
+    "touchDeadzone": 0.15,
+    "virtualJoystickSize": 120,
+    "touchButtonSize": 64
+  },
+
+  "audio": {
+    "masterVolume": 1.0,
+    "musicVolume": 0.5,
+    "sfxVolume": 0.8,
+    "uiVolume": 0.6,
+    "voiceVolume": 0.7,
+    "maxSources": 32,
+    "rolloffFactor": 1.0,
+    "refDistance": 1.0,
+    "maxDistance": 50.0,
+    "dopplerFactor": 0.5
+  },
+
+  "graphics": {
+    "quality": "high",
+    "shadows": true,
+    "shadowDistance": 100,
+    "shadowResolution": 2048,
+    "vsync": true,
+    "antiAliasing": "fxaa",
+    "textureQuality": "high",
+    "particleQuality": "high",
+    "lodBias": 1.0,
+    "drawDistance": 500,
+    "fogEnabled": true,
+    "bloomEnabled": true,
+    "motionBlurEnabled": false
+  },
+
+  "gameplay": {
+    "difficulty": "normal",
+    "permadeath": false,
+    "friendlyFire": false,
+    "pvpEnabled": false,
+    "lootMultiplier": 1.0,
+    "xpMultiplier": 1.0,
+    "staminaRegenMultiplier": 1.0,
+    "healthRegenMultiplier": 1.0,
+    "captureRateMultiplier": 1.0,
+    "mutationRateMultiplier": 1.0,
+    "buildingDecayEnabled": true,
+    "territoryDecayDays": 7,
+    "maxPartySize": 4
+  },
+
+  "network": {
+    "enabled": false,
+    "maxPlayers": 4,
+    "tickRate": 20,
+    "interpolation": 100,
+    "maxPacketSize": 1400
+  },
+
+  "debug": {
+    "showFPS": true,
+    "showEntityCount": true,
+    "showPhysicsDebug": false,
+    "showAIDebug": false,
+    "showNavigationMesh": false,
+    "showHitboxes": false,
+    "invincible": false,
+    "infiniteStamina": false,
+    "infiniteFury": false,
+    "noCooldowns": false,
+    "godMode": false,
+    "noclip": false
+  },
+
+  "dataPaths": {
+    "weapons": "assets/data/weapons/",
+    "skills": "assets/data/skills/",
+    "creatures": "assets/data/creatures/",
+    "building": "assets/data/building/",
+    "biomes": "assets/data/biomes.json",
+    "elementalReactions": "assets/data/elemental_reactions.json",
+    "gameConfig": "assets/data/game_config.json"
+  }
+}

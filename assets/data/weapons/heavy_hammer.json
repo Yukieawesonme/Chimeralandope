@@ -1,0 +1,168 @@
+{
+  "id": "weapon_heavy_hammer",
+  "name": "Martelo Colossal das Montanhas",
+  "type": "heavy",
+  "slot": 1,
+  "baseDamage": 85,
+  "attackSpeed": 0.6,
+  "range": 3.5,
+  "staminaCost": 20,
+  "poiseDamage": 40,
+  "knockback": 12,
+  "criticalChance": 5,
+  "criticalMultiplier": 1.8,
+  "elementalType": "physical",
+  "elementalDamage": 0,
+  "moveset": [
+    {
+      "id": "hammer_light_1",
+      "name": "Balanço Lateral",
+      "damageMultiplier": 1.0,
+      "poiseMultiplier": 1.2,
+      "startupFrames": 15,
+      "activeFrames": 6,
+      "recoveryFrames": 20,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 1.5, "y": 1.5, "z": 1 },
+          "size": { "x": 2.5, "y": 2, "z": 2.5 },
+          "shape": "sphere",
+          "damageMultiplier": 1.0,
+          "angle": 0,
+          "knockback": 8
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 0.5 },
+      "canCancelInto": ["hammer_light_2", "dash"],
+      "animation": "hammer_swing_side",
+      "soundEffect": "hammer_swing_heavy",
+      "effects": ["impact_wave", "dust_cloud"]
+    },
+    {
+      "id": "hammer_light_2",
+      "name": "Martelada Superior",
+      "damageMultiplier": 1.2,
+      "poiseMultiplier": 1.5,
+      "startupFrames": 18,
+      "activeFrames": 5,
+      "recoveryFrames": 22,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 2, "z": 2 },
+          "size": { "x": 2, "y": 2.5, "z": 2 },
+          "shape": "sphere",
+          "damageMultiplier": 1.0,
+          "angle": -30,
+          "knockback": 10
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 1, "z": 1 },
+      "canCancelInto": ["hammer_light_3", "dash"],
+      "animation": "hammer_swing_overhead",
+      "soundEffect": "hammer_swing_heavy_2",
+      "effects": ["impact_wave_2", "ground_crack"]
+    },
+    {
+      "id": "hammer_light_3",
+      "name": "Esmagamento Final",
+      "damageMultiplier": 1.8,
+      "poiseMultiplier": 2.5,
+      "startupFrames": 22,
+      "activeFrames": 8,
+      "recoveryFrames": 30,
+      "hitboxCount": 2,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1, "z": 2.5 },
+          "size": { "x": 3, "y": 2, "z": 3 },
+          "shape": "sphere",
+          "damageMultiplier": 1.0,
+          "angle": 0,
+          "knockback": 15
+        },
+        {
+          "offset": { "x": 0, "y": 0.5, "z": 1.5 },
+          "size": { "x": 4, "y": 1, "z": 4 },
+          "shape": "sphere",
+          "damageMultiplier": 0.5,
+          "angle": 0,
+          "knockback": 8
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 0 },
+      "canCancelInto": [],
+      "animation": "hammer_slam_finisher",
+      "soundEffect": "hammer_ground_impact",
+      "effects": ["massive_shockwave", "ground_break", "debris"]
+    }
+  ],
+  "switchAttack": {
+    "id": "hammer_switch",
+    "name": "Troca: Impacto Sísmico",
+    "damageMultiplier": 1.5,
+    "poiseMultiplier": 2.0,
+    "startupFrames": 10,
+    "activeFrames": 6,
+    "recoveryFrames": 18,
+    "hitboxCount": 1,
+    "hitboxes": [
+      {
+        "offset": { "x": 0, "y": 1, "z": 2 },
+        "size": { "x": 3.5, "y": 2, "z": 3.5 },
+        "shape": "sphere",
+        "damageMultiplier": 1.0,
+        "angle": 0,
+        "knockback": 12
+      }
+    ],
+    "movementImpulse": { "x": 0, "y": 0, "z": 1 },
+    "canCancelInto": [],
+    "animation": "hammer_switch_slam",
+    "soundEffect": "hammer_swap_impact",
+    "effects": ["seismic_wave", "swap_flash_heavy"]
+  },
+  "uniqueMechanic": {
+    "type": "charge",
+    "levels": [
+      {
+        "level": 1,
+        "minChargeTime": 0.8,
+        "damageMultiplier": 1.5,
+        "radiusMultiplier": 1.0,
+        "poiseMultiplier": 2.0,
+        "superArmor": true,
+        "effect": "charge_level_1"
+      },
+      {
+        "level": 2,
+        "minChargeTime": 1.5,
+        "damageMultiplier": 2.2,
+        "radiusMultiplier": 1.3,
+        "poiseMultiplier": 3.0,
+        "superArmor": true,
+        "effect": "charge_level_2"
+      },
+      {
+        "level": 3,
+        "minChargeTime": 2.5,
+        "damageMultiplier": 3.5,
+        "radiusMultiplier": 1.8,
+        "poiseMultiplier": 5.0,
+        "superArmor": true,
+        "effect": "charge_level_3"
+      }
+    ],
+    "maxChargeTime": 3.0,
+    "holdStaminaCost": 10,
+    "releaseWindow": 0.5
+  },
+  "skillIds": ["skill_ground_slam", "skill_seismic_wave", "skill_super_armor"],
+  "craftCost": [
+    { "itemId": "iron_ore", "quantity": 40 },
+    { "itemId": "mountain_heart", "quantity": 3 },
+    { "itemId": "ancient_wood", "quantity": 15 },
+    { "itemId": "earth_essence", "quantity": 10 }
+  ]
+}

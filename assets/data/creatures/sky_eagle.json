@@ -1,0 +1,265 @@
+{
+  "id": "sky_eagle",
+  "name": "Águia Celestial",
+  "biome": ["floating_mountains", "spirit_plains", "crystal_caves"],
+  "level": 8,
+  "baseHP": 600,
+  "baseDamage": 55,
+  "baseDefense": 20,
+  "basePoise": 100,
+  "moveSpeed": 15,
+  "attackRange": 10,
+  "aggroRange": 30,
+  "leashRange": 60,
+  "patrolRadius": 30,
+  "size": "large",
+  "anatomy": {
+    "bodyParts": [
+      {
+        "id": "head",
+        "name": "Cabeça",
+        "boneName": "Head",
+        "hpMultiplier": 0.25,
+        "armorMultiplier": 1.2,
+        "isVital": true,
+        "isWeakPoint": true,
+        "destroyEffect": "head_break_bird",
+        "destroyLoot": [
+          { "itemId": "eagle_beak", "minQuantity": 1, "maxQuantity": 1, "chance": 0.7 },
+          { "itemId": "wind_essence", "minQuantity": 1, "maxQuantity": 2, "chance": 0.5 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_eagle_screech"]
+      },
+      {
+        "id": "left_wing",
+        "name": "Asa Esquerda",
+        "boneName": "LeftWing",
+        "hpMultiplier": 0.2,
+        "armorMultiplier": 0.5,
+        "isVital": false,
+        "isWeakPoint": true,
+        "destroyEffect": "wing_break",
+        "destroyLoot": [
+          { "itemId": "eagle_feather", "minQuantity": 3, "maxQuantity": 6, "chance": 0.9 },
+          { "itemId": "wind_essence", "minQuantity": 1, "maxQuantity": 1, "chance": 0.4 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "right_wing",
+        "name": "Asa Direita",
+        "boneName": "RightWing",
+        "hpMultiplier": 0.2,
+        "armorMultiplier": 0.5,
+        "isVital": false,
+        "isWeakPoint": true,
+        "destroyEffect": "wing_break",
+        "destroyLoot": [
+          { "itemId": "eagle_feather", "minQuantity": 3, "maxQuantity": 6, "chance": 0.9 },
+          { "itemId": "wind_essence", "minQuantity": 1, "maxQuantity": 1, "chance": 0.4 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "talons",
+        "name": "Garras",
+        "boneName": "Talons",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 1.5,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "talon_break",
+        "destroyLoot": [
+          { "itemId": "eagle_talon", "minQuantity": 2, "maxQuantity": 4, "chance": 0.8 }
+        ],
+        "staggerOnDestroy": "light",
+        "skillsUnlocked": ["skill_talon_rake"]
+      },
+      {
+        "id": "heart",
+        "name": "Coração Celestial",
+        "boneName": "Spine",
+        "hpMultiplier": 0.2,
+        "armorMultiplier": 2.0,
+        "isVital": true,
+        "isWeakPoint": true,
+        "destroyEffect": "heart_explosion",
+        "destroyLoot": [
+          { "itemId": "celestial_core", "minQuantity": 1, "maxQuantity": 1, "chance": 1.0 },
+          { "itemId": "wind_crystal", "minQuantity": 2, "maxQuantity": 4, "chance": 0.6 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_wind_walk"]
+      }
+    ],
+    "sockets": [
+      {
+        "id": "back",
+        "boneName": "Spine",
+        "type": "back",
+        "compatibleParts": ["wolf_mane", "scorpion_armor"],
+        "offset": { "x": 0, "y": 0.3, "z": -0.2 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      },
+      {
+        "id": "tail",
+        "boneName": "Tail",
+        "type": "tail",
+        "compatibleParts": ["wolf_tail", "scorpion_tail"],
+        "offset": { "x": 0, "y": 0, "z": 0.4 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      }
+    ],
+    "movementType": "flying",
+    "canClimb": true,
+    "canSwim": false
+  },
+  "attacks": [
+    {
+      "id": "dive_bomb",
+      "name": "Mergulho Picado",
+      "damageMultiplier": 2.0,
+      "range": 20,
+      "angle": 20,
+      "startupTime": 1.0,
+      "activeTime": 0.5,
+      "recoveryTime": 1.5,
+      "poiseDamage": 40,
+      "knockback": 15,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 0, "z": 3 },
+          "size": { "x": 2, "y": 1.5, "z": 4 },
+          "shape": "capsule"
+        }
+      ],
+      "animation": "eagle_dive",
+      "effects": ["dive_screech", "wind_tunnel", "impact_crater"],
+      "cooldown": 8,
+      "minDistance": 15,
+      "maxDistance": 30,
+      "requiresTarget": true
+    },
+    {
+      "id": "wing_buffet",
+      "name": "Batida de Asas",
+      "damageMultiplier": 1.2,
+      "range": 5,
+      "angle": 120,
+      "startupTime": 0.4,
+      "activeTime": 0.3,
+      "recoveryTime": 0.8,
+      "poiseDamage": 25,
+      "knockback": 12,
+      "hitboxCount": 2,
+      "hitboxes": [
+        {
+          "offset": { "x": -2, "y": 1, "z": 1 },
+          "size": { "x": 2.5, "y": 2, "z": 2 },
+          "shape": "box"
+        },
+        {
+          "offset": { "x": 2, "y": 1, "z": 1 },
+          "size": { "x": 2.5, "y": 2, "z": 2 },
+          "shape": "box"
+        }
+      ],
+      "animation": "eagle_wing_buffet",
+      "effects": ["wind_gust", "feather_storm"],
+      "cooldown": 6,
+      "minDistance": 0,
+      "maxDistance": 6,
+      "requiresTarget": true
+    },
+    {
+      "id": "talon_grab",
+      "name": "Agarre de Garras",
+      "damageMultiplier": 1.0,
+      "range": 3,
+      "angle": 40,
+      "startupTime": 0.3,
+      "activeTime": 0.2,
+      "recoveryTime": 0.5,
+      "poiseDamage": 20,
+      "knockback": 5,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": -0.5, "z": 2 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2 },
+          "shape": "box"
+        }
+      ],
+      "animation": "eagle_grab",
+      "effects": ["grab_effect", "lift_target"],
+      "cooldown": 10,
+      "minDistance": 0,
+      "maxDistance": 4,
+      "requiresTarget": true
+    },
+    {
+      "id": "wind_blade",
+      "name": "Lâmina de Vento",
+      "damageMultiplier": 0.8,
+      "range": 25,
+      "angle": 15,
+      "startupTime": 0.5,
+      "activeTime": 0.2,
+      "recoveryTime": 1.0,
+      "poiseDamage": 10,
+      "knockback": 8,
+      "hitboxCount": 0,
+      "hitboxes": [],
+      "animation": "eagle_wind_blade",
+      "effects": ["wind_projectile", "slash_air"],
+      "cooldown": 4,
+      "minDistance": 10,
+      "maxDistance": 30,
+      "requiresTarget": true
+    }
+  ],
+  "skills": ["skill_eagle_screech", "skill_wind_barrier", "skill_updraft"],
+  "lootTable": [
+    { "itemId": "eagle_feather", "minQuantity": 5, "maxQuantity": 12, "chance": 1.0 },
+    { "itemId": "eagle_meat", "minQuantity": 3, "maxQuantity": 5, "chance": 0.8 },
+    { "itemId": "wind_essence", "minQuantity": 2, "maxQuantity": 4, "chance": 0.5 },
+    { "itemId": "celestial_feather", "minQuantity": 0, "maxQuantity": 1, "chance": 0.1 }
+  ],
+  "captureDifficulty": 0.25,
+  "mutationParts": [
+    {
+      "sourceCreatureId": "spirit_wolf",
+      "bodyPartId": "mane",
+      "targetSocket": "back",
+      "chance": 0.12,
+      "isRare": false,
+      "statBonuses": { "hp": 150, "poise": 50 },
+      "unlockedSkills": ["skill_feral_roar", "skill_pack_bond"],
+      "visualMesh": "eagle_wolf_mane",
+      "visualScale": { "x": 1, "y": 1, "z": 1 },
+      "visualOffset": { "x": 0, "y": 0.3, "z": -0.2 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    },
+    {
+      "sourceCreatureId": "abyssal_scorpion",
+      "bodyPartId": "chitin_plates",
+      "targetSocket": "back",
+      "chance": 0.08,
+      "isRare": true,
+      "statBonuses": { "defense": 50, "elementalResist": { "poison": 100, "physical": 25 } },
+      "unlockedSkills": ["skill_chitin_armor", "skill_reflective_shell"],
+      "visualMesh": "eagle_scorpion_armor",
+      "visualScale": { "x": 1, "y": 1, "z": 1 },
+      "visualOffset": { "x": 0, "y": 0.3, "z": -0.2 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    }
+  ],
+  "isBoss": false,
+  "isRare": false,
+  "spawnWeight": 60,
+  "timeOfDay": "day"
+}

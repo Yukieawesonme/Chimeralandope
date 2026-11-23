@@ -1,0 +1,240 @@
+{
+  "id": "spirit_wolf",
+  "name": "Lobo Espiritual",
+  "biome": ["spirit_plains", "ancient_forest", "floating_mountains"],
+  "level": 5,
+  "baseHP": 800,
+  "baseDamage": 45,
+  "baseDefense": 25,
+  "basePoise": 150,
+  "moveSpeed": 7,
+  "attackRange": 2.5,
+  "aggroRange": 20,
+  "leashRange": 40,
+  "patrolRadius": 15,
+  "size": "medium",
+  "anatomy": {
+    "bodyParts": [
+      {
+        "id": "head",
+        "name": "Crânio",
+        "boneName": "Head",
+        "hpMultiplier": 0.3,
+        "armorMultiplier": 1.0,
+        "isVital": true,
+        "isWeakPoint": true,
+        "destroyEffect": "head_break",
+        "destroyLoot": [
+          { "itemId": "wolf_fang", "minQuantity": 1, "maxQuantity": 2, "chance": 0.8 },
+          { "itemId": "spirit_essence", "minQuantity": 1, "maxQuantity": 1, "chance": 0.5 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_wolf_howl"]
+      },
+      {
+        "id": "front_left_leg",
+        "name": "Pata Dianteira Esquerda",
+        "boneName": "FrontLeftLeg",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 0.8,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "leg_break",
+        "destroyLoot": [
+          { "itemId": "wolf_claw", "minQuantity": 1, "maxQuantity": 1, "chance": 0.6 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "front_right_leg",
+        "name": "Pata Dianteira Direita",
+        "boneName": "FrontRightLeg",
+        "hpMultiplier": 0.15,
+        "armorMultiplier": 0.8,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "leg_break",
+        "destroyLoot": [
+          { "itemId": "wolf_claw", "minQuantity": 1, "maxQuantity": 1, "chance": 0.6 }
+        ],
+        "staggerOnDestroy": "medium",
+        "skillsUnlocked": []
+      },
+      {
+        "id": "tail",
+        "name": "Cauda",
+        "boneName": "Tail",
+        "hpMultiplier": 0.1,
+        "armorMultiplier": 0.5,
+        "isVital": false,
+        "isWeakPoint": false,
+        "destroyEffect": "tail_break",
+        "destroyLoot": [
+          { "itemId": "wolf_tail", "minQuantity": 1, "maxQuantity": 1, "chance": 0.4 }
+        ],
+        "staggerOnDestroy": "light",
+        "skillsUnlocked": ["skill_tail_whip"]
+      },
+      {
+        "id": "spirit_core",
+        "name": "Núcleo Espiritual",
+        "boneName": "Spine",
+        "hpMultiplier": 0.2,
+        "armorMultiplier": 1.5,
+        "isVital": true,
+        "isWeakPoint": true,
+        "destroyEffect": "core_explosion",
+        "destroyLoot": [
+          { "itemId": "spirit_crystal", "minQuantity": 1, "maxQuantity": 3, "chance": 1.0 },
+          { "itemId": "ancient_essence", "minQuantity": 1, "maxQuantity": 1, "chance": 0.3 }
+        ],
+        "staggerOnDestroy": "heavy",
+        "skillsUnlocked": ["skill_spirit_resonance"]
+      }
+    ],
+    "sockets": [
+      {
+        "id": "back",
+        "boneName": "Spine",
+        "type": "back",
+        "compatibleParts": ["eagle_wings", "scorpion_stinger", "dragon_wings"],
+        "offset": { "x": 0, "y": 0.5, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      },
+      {
+        "id": "tail_socket",
+        "boneName": "Tail",
+        "type": "tail",
+        "compatibleParts": ["eagle_tail_feathers", "scorpion_tail"],
+        "offset": { "x": 0, "y": 0, "z": 0.5 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      },
+      {
+        "id": "head_horns",
+        "boneName": "Head",
+        "type": "horn",
+        "compatibleParts": ["alpha_horns", "crown_feathers"],
+        "offset": { "x": 0, "y": 0.3, "z": 0.2 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+      }
+    ],
+    "movementType": "ground",
+    "canClimb": false,
+    "canSwim": true
+  },
+  "attacks": [
+    {
+      "id": "bite",
+      "name": "Mordida",
+      "damageMultiplier": 1.0,
+      "range": 2.5,
+      "angle": 45,
+      "startupTime": 0.3,
+      "activeTime": 0.2,
+      "recoveryTime": 0.5,
+      "poiseDamage": 15,
+      "knockback": 5,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1, "z": 1.5 },
+          "size": { "x": 1.2, "y": 1, "z": 2 },
+          "shape": "box"
+        }
+      ],
+      "animation": "wolf_bite",
+      "effects": ["bite_impact"],
+      "cooldown": 2,
+      "minDistance": 0,
+      "maxDistance": 3,
+      "requiresTarget": true
+    },
+    {
+      "id": "pounce",
+      "name": "Investida",
+      "damageMultiplier": 1.5,
+      "range": 6,
+      "angle": 30,
+      "startupTime": 0.5,
+      "activeTime": 0.3,
+      "recoveryTime": 1.0,
+      "poiseDamage": 30,
+      "knockback": 10,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.2, "z": 2 },
+          "size": { "x": 1.5, "y": 1.5, "z": 3 },
+          "shape": "capsule"
+        }
+      ],
+      "animation": "wolf_pounce",
+      "effects": ["pounce_trail", "landing_dust"],
+      "cooldown": 5,
+      "minDistance": 4,
+      "maxDistance": 8,
+      "requiresTarget": true
+    },
+    {
+      "id": "howl",
+      "name": "Uivo Espiritual",
+      "damageMultiplier": 0,
+      "range": 15,
+      "angle": 360,
+      "startupTime": 1.0,
+      "activeTime": 2.0,
+      "recoveryTime": 1.5,
+      "poiseDamage": 0,
+      "knockback": 0,
+      "hitboxCount": 0,
+      "hitboxes": [],
+      "animation": "wolf_howl",
+      "effects": ["howl_wave", "buff_allies"],
+      "cooldown": 20,
+      "minDistance": 0,
+      "maxDistance": 15,
+      "requiresTarget": false
+    }
+  ],
+  "skills": ["skill_wolf_howl", "skill_pack_coordination"],
+  "lootTable": [
+    { "itemId": "wolf_pelt", "minQuantity": 1, "maxQuantity": 3, "chance": 0.8 },
+    { "itemId": "wolf_meat", "minQuantity": 2, "maxQuantity": 4, "chance": 0.9 },
+    { "itemId": "spirit_essence", "minQuantity": 1, "maxQuantity": 2, "chance": 0.4 },
+    { "itemId": "wolf_fang", "minQuantity": 0, "maxQuantity": 1, "chance": 0.2 }
+  ],
+  "captureDifficulty": 0.3,
+  "mutationParts": [
+    {
+      "sourceCreatureId": "sky_eagle",
+      "bodyPartId": "wings",
+      "targetSocket": "back",
+      "chance": 0.15,
+      "isRare": false,
+      "statBonuses": { "speed": 2, "hp": 100 },
+      "unlockedSkills": ["skill_wing_buffet", "skill_aerial_dive"],
+      "visualMesh": "wolf_wings",
+      "visualScale": { "x": 1, "y": 1, "z": 1 },
+      "visualOffset": { "x": 0, "y": 0.5, "z": -0.3 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    },
+    {
+      "sourceCreatureId": "abyssal_scorpion",
+      "bodyPartId": "stinger",
+      "targetSocket": "tail_socket",
+      "chance": 0.1,
+      "isRare": true,
+      "statBonuses": { "damage": 20, "elementalResist": { "poison": 50 } },
+      "unlockedSkills": ["skill_venom_strike", "skill_poison_tail"],
+      "visualMesh": "wolf_scorpion_tail",
+      "visualScale": { "x": 1, "y": 1, "z": 1 },
+      "visualOffset": { "x": 0, "y": 0, "z": 0.8 },
+      "visualRotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    }
+  ],
+  "isBoss": false,
+  "isRare": false,
+  "spawnWeight": 100,
+  "timeOfDay": "any"
+}

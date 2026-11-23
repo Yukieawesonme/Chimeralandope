@@ -1,0 +1,308 @@
+{
+  "biomes": [
+    {
+      "id": "spirit_plains",
+      "name": "Planícies Espirituais",
+      "description": "Vastas planícies cobertas de grama brilhante e cristais de energia flutuantes. Lar de criaturas espirituais pacíficas e recursos básicos.",
+      "color": { "r": 0.4, "g": 0.8, "b": 0.5 },
+      "temperature": 22,
+      "humidity": 0.5,
+      "elevation": { "min": 0, "max": 50 },
+      "noiseParams": { "scale": 0.01, "octaves": 4, "persistence": 0.5, "lacunarity": 2.0 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "spirit_wolf", "weight": 50, "minLevel": 3, "maxLevel": 8, "groupSize": { "min": 1, "max": 3 } },
+          { "creatureId": "spirit_deer", "weight": 30, "minLevel": 2, "maxLevel": 5, "groupSize": { "min": 2, "max": 5 } },
+          { "creatureId": "crystal_rabbit", "weight": 20, "minLevel": 1, "maxLevel": 3, "groupSize": { "min": 1, "max": 2 } }
+        ],
+        "night": [
+          { "creatureId": "spirit_wolf", "weight": 40, "minLevel": 5, "maxLevel": 10, "groupSize": { "min": 2, "max": 4 } },
+          { "creatureId": "shadow_stalker", "weight": 25, "minLevel": 8, "maxLevel": 12, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "wisp", "weight": 35, "minLevel": 3, "maxLevel": 6, "groupSize": { "min": 3, "max": 6 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "spirit_grass", "chance": 0.8, "quantity": { "min": 1, "max": 3 } },
+        { "itemId": "crystal_shard", "chance": 0.3, "quantity": { "min": 1, "max": 2 } },
+        { "itemId": "ancient_wood", "chance": 0.4, "quantity": { "min": 2, "max": 5 } },
+        { "itemId": "spirit_essence", "chance": 0.1, "quantity": { "min": 1, "max": 1 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.5, "g": 0.7, "b": 0.9 },
+        "fogColor": { "r": 0.6, "g": 0.8, "b": 0.7 },
+        "fogDensity": 0.01,
+        "ambientSound": "ambient_plains_day",
+        "musicDay": "music_plains_peaceful",
+        "musicNight": "music_plains_mysterious"
+      },
+      "weather": [
+        { "type": "clear", "weight": 60 },
+        { "type": "light_rain", "weight": 25 },
+        { "type": "spirit_storm", "weight": 10 },
+        { "type": "crystal_rain", "weight": 5 }
+      ],
+      "pointsOfInterest": [
+        { "type": "ancient_ruins", "chance": 0.02, "minDistance": 200 },
+        { "type": "spirit_spring", "chance": 0.05, "minDistance": 100 },
+        { "type": "crystal_formation", "chance": 0.08, "minDistance": 50 }
+      ]
+    },
+    {
+      "id": "floating_mountains",
+      "name": "Montanhas Flutuantes",
+      "description": "Ilhas rochosas suspensas no ar por energias antigas. Ventos fortes e criaturas voadoras dominam. Acesso requer planador ou montaria voadora.",
+      "color": { "r": 0.6, "g": 0.6, "b": 0.8 },
+      "temperature": 15,
+      "humidity": 0.3,
+      "elevation": { "min": 200, "max": 800 },
+      "noiseParams": { "scale": 0.005, "octaves": 6, "persistence": 0.6, "lacunarity": 2.5 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "sky_eagle", "weight": 40, "minLevel": 8, "maxLevel": 15, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "wind_serpent", "weight": 25, "minLevel": 10, "maxLevel": 18, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "cloud_whale", "weight": 15, "minLevel": 20, "maxLevel": 30, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "floating_jellyfish", "weight": 20, "minLevel": 5, "maxLevel": 10, "groupSize": { "min": 2, "max": 5 } }
+        ],
+        "night": [
+          { "creatureId": "sky_eagle", "weight": 30, "minLevel": 10, "maxLevel": 18, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "moon_phoenix", "weight": 10, "minLevel": 25, "maxLevel": 35, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "star_manta", "weight": 20, "minLevel": 15, "maxLevel": 25, "groupSize": { "min": 1, "max": 3 } },
+          { "creatureId": "void_ray", "weight": 20, "minLevel": 18, "maxLevel": 28, "groupSize": { "min": 1, "max": 2 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "wind_essence", "chance": 0.6, "quantity": { "min": 2, "max": 4 } },
+        { "itemId": "cloud_cotton", "chance": 0.4, "quantity": { "min": 3, "max": 6 } },
+        { "itemId": "sky_iron", "chance": 0.2, "quantity": { "min": 1, "max": 3 } },
+        { "itemId": "feather_rare", "chance": 0.15, "quantity": { "min": 1, "max": 2 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.4, "g": 0.5, "b": 0.8 },
+        "fogColor": { "r": 0.7, "g": 0.7, "b": 0.9 },
+        "fogDensity": 0.005,
+        "ambientSound": "ambient_wind_high",
+        "musicDay": "music_mountains_majestic",
+        "musicNight": "music_mountains_ethereal"
+      },
+      "weather": [
+        { "type": "clear", "weight": 40 },
+        { "type": "strong_wind", "weight": 30 },
+        { "type": "thunderstorm", "weight": 20 },
+        { "type": "aurora", "weight": 10 }
+      ],
+      "pointsOfInterest": [
+        { "type": "sky_temple", "chance": 0.01, "minDistance": 500 },
+        { "type": "wind_shrine", "chance": 0.03, "minDistance": 200 },
+        { "type": "floating_garden", "chance": 0.05, "minDistance": 150 }
+      ]
+    },
+    {
+      "id": "ash_desert",
+      "name": "Deserto de Cinzas",
+      "description": "Um deserto cinzento onde chove cinzas vulcânicas. Calor extremo de dia, frio cortante à noite. Criaturas adaptadas ao fogo e terra.",
+      "color": { "r": 0.5, "g": 0.4, "b": 0.3 },
+      "temperature": { "day": 45, "night": 5 },
+      "humidity": 0.05,
+      "elevation": { "min": 0, "max": 100 },
+      "noiseParams": { "scale": 0.008, "octaves": 5, "persistence": 0.4, "lacunarity": 2.0 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "ash_lizard", "weight": 40, "minLevel": 10, "maxLevel": 15, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "sand_worm", "weight": 20, "minLevel": 18, "maxLevel": 25, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "cinder_golem", "weight": 15, "minLevel": 20, "maxLevel": 28, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "fire_scorpion", "weight": 25, "minLevel": 12, "maxLevel": 18, "groupSize": { "min": 1, "max": 3 } }
+        ],
+        "night": [
+          { "creatureId": "ash_wraith", "weight": 30, "minLevel": 15, "maxLevel": 22, "groupSize": { "min": 1, "max": 3 } },
+          { "creatureId": "obsidian_beast", "weight": 20, "minLevel": 22, "maxLevel": 30, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "night_stalker", "weight": 25, "minLevel": 18, "maxLevel": 25, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "cinder_golem", "weight": 25, "minLevel": 20, "maxLevel": 28, "groupSize": { "min": 1, "max": 2 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "volcanic_ash", "chance": 0.9, "quantity": { "min": 5, "max": 10 } },
+        { "itemId": "obsidian", "chance": 0.3, "quantity": { "min": 1, "max": 3 } },
+        { "itemId": "fire_essence", "chance": 0.4, "quantity": { "min": 2, "max": 4 } },
+        { "itemId": "sulfur", "chance": 0.5, "quantity": { "min": 2, "max": 5 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.6, "g": 0.4, "b": 0.3 },
+        "fogColor": { "r": 0.5, "g": 0.3, "b": 0.2 },
+        "fogDensity": 0.02,
+        "ambientSound": "ambient_ash_wind",
+        "musicDay": "music_desert_harsh",
+        "musicNight": "music_desert_cold"
+      },
+      "weather": [
+        { "type": "ash_fall", "weight": 50 },
+        { "type": "heat_wave", "weight": 25 },
+        { "type": "sandstorm", "weight": 15 },
+        { "type": "meteor_shower", "weight": 10 }
+      ],
+      "pointsOfInterest": [
+        { "type": "volcano_crater", "chance": 0.01, "minDistance": 1000 },
+        { "type": "ancient_forge", "chance": 0.02, "minDistance": 300 },
+        { "type": "obsidian_field", "chance": 0.05, "minDistance": 100 }
+      ]
+    },
+    {
+      "id": "toxic_swamp",
+      "name": "Pântano Tóxico",
+      "description": "Águas venenosas e névoa corrosiva. Apenas as criaturas mais adaptadas sobrevivem. Rico em ingredientes alquímicos raros.",
+      "color": { "r": 0.3, "g": 0.5, "b": 0.3 },
+      "temperature": 28,
+      "humidity": 0.95,
+      "elevation": { "min": -20, "max": 30 },
+      "noiseParams": { "scale": 0.015, "octaves": 4, "persistence": 0.7, "lacunarity": 1.8 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "bog_walker", "weight": 35, "minLevel": 12, "maxLevel": 18, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "poison_frog", "weight": 25, "minLevel": 8, "maxLevel": 14, "groupSize": { "min": 2, "max": 5 } },
+          { "creatureId": "mire_drake", "weight": 15, "minLevel": 20, "maxLevel": 28, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "sludge_elemental", "weight": 25, "minLevel": 15, "maxLevel": 22, "groupSize": { "min": 1, "max": 3 } }
+        ],
+        "night": [
+          { "creatureId": "abyssal_scorpion", "weight": 30, "minLevel": 12, "maxLevel": 20, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "swamp_hag", "weight": 20, "minLevel": 18, "maxLevel": 25, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "will_o_wisp", "weight": 30, "minLevel": 10, "maxLevel": 16, "groupSize": { "min": 3, "max": 6 } },
+          { "creatureId": "bog_walker", "weight": 20, "minLevel": 15, "maxLevel": 22, "groupSize": { "min": 1, "max": 2 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "poison_sac", "chance": 0.6, "quantity": { "min": 1, "max": 3 } },
+        { "itemId": "mire_moss", "chance": 0.7, "quantity": { "min": 3, "max": 6 } },
+        { "itemId": "alchemical_base", "chance": 0.4, "quantity": { "min": 2, "max": 4 } },
+        { "itemId": "toxic_crystal", "chance": 0.2, "quantity": { "min": 1, "max": 2 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.3, "g": 0.4, "b": 0.3 },
+        "fogColor": { "r": 0.4, "g": 0.5, "b": 0.4 },
+        "fogDensity": 0.05,
+        "ambientSound": "ambient_swamp_bubbles",
+        "musicDay": "music_swamp_ominous",
+        "musicNight": "music_swamp_haunting"
+      },
+      "weather": [
+        { "type": "toxic_fog", "weight": 50 },
+        { "type": "acid_rain", "weight": 25 },
+        { "type": "miasma", "weight": 15 },
+        { "type": "clear", "weight": 10 }
+      ],
+      "pointsOfInterest": [
+        { "type": "ancient_lab", "chance": 0.01, "minDistance": 500 },
+        { "type": "poison_spring", "chance": 0.04, "minDistance": 150 },
+        { "type": "mushroom_circle", "chance": 0.08, "minDistance": 80 }
+      ]
+    },
+    {
+      "id": "deep_ocean",
+      "name": "Oceanos Profundos",
+      "description": "As profundezas escuras do oceano. Pressão extrema, bioluminescência e criaturas abissais. Requer equipamento de mergulho avançado.",
+      "color": { "r": 0.05, "g": 0.1, "b": 0.3 },
+      "temperature": 4,
+      "humidity": 1.0,
+      "elevation": { "min": -2000, "max": 0 },
+      "noiseParams": { "scale": 0.003, "octaves": 7, "persistence": 0.5, "lacunarity": 2.2 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "abyssal_scorpion", "weight": 25, "minLevel": 12, "maxLevel": 20, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "deep_whale", "weight": 15, "minLevel": 30, "maxLevel": 50, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "angler_fish", "weight": 20, "minLevel": 15, "maxLevel": 22, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "giant_squid", "weight": 15, "minLevel": 25, "maxLevel": 35, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "bioluminescent_school", "weight": 25, "minLevel": 5, "maxLevel": 12, "groupSize": { "min": 10, "max": 50 } }
+        ],
+        "night": [
+          { "creatureId": "abyssal_scorpion", "weight": 30, "minLevel": 15, "maxLevel": 25, "groupSize": { "min": 1, "max": 3 } },
+          { "creatureId": "abyssal_leviathan", "weight": 5, "minLevel": 60, "maxLevel": 80, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "vampire_squid", "weight": 20, "minLevel": 18, "maxLevel": 28, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "deep_jellyfish", "weight": 25, "minLevel": 12, "maxLevel": 20, "groupSize": { "min": 3, "max": 8 } },
+          { "creatureId": "lantern_fish", "weight": 20, "minLevel": 8, "maxLevel": 15, "groupSize": { "min": 5, "max": 20 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "abyssal_essence", "chance": 0.5, "quantity": { "min": 2, "max": 4 } },
+        { "itemId": "deep_pearl", "chance": 0.2, "quantity": { "min": 1, "max": 2 } },
+        { "itemId": "coral_ancient", "chance": 0.3, "quantity": { "min": 2, "max": 5 } },
+        { "itemId": "pressure_crystal", "chance": 0.15, "quantity": { "min": 1, "max": 2 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.02, "g": 0.05, "b": 0.15 },
+        "fogColor": { "r": 0.05, "g": 0.1, "b": 0.2 },
+        "fogDensity": 0.1,
+        "ambientSound": "ambient_deep_ocean",
+        "musicDay": "music_ocean_mysterious",
+        "musicNight": "music_ocean_terrifying"
+      },
+      "weather": [
+        { "type": "calm", "weight": 50 },
+        { "type": "deep_current", "weight": 25 },
+        { "type": "bioluminescent_bloom", "weight": 15 },
+        { "type": "abyssal_storm", "weight": 10 }
+      ],
+      "pointsOfInterest": [
+        { "type": "sunken_city", "chance": 0.005, "minDistance": 2000 },
+        { "type": "hydrothermal_vent", "chance": 0.02, "minDistance": 500 },
+        { "type": "coral_forest", "chance": 0.05, "minDistance": 200 }
+      ]
+    },
+    {
+      "id": "crystal_caves",
+      "name": "Cavernas de Cristal",
+      "description": "Redes subterrâneas iluminadas por cristais bioluminescentes. Minérios raros e criaturas cristalinas. Perigo de desmoronamentos.",
+      "color": { "r": 0.5, "g": 0.4, "b": 0.7 },
+      "temperature": 18,
+      "humidity": 0.4,
+      "elevation": { "min": -500, "max": 0 },
+      "noiseParams": { "scale": 0.02, "octaves": 5, "persistence": 0.6, "lacunarity": 2.0 },
+      "spawnTables": {
+        "day": [
+          { "creatureId": "crystal_golem", "weight": 30, "minLevel": 15, "maxLevel": 22, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "gem_bat", "weight": 25, "minLevel": 10, "maxLevel": 16, "groupSize": { "min": 3, "max": 8 } },
+          { "creatureId": "shard_spider", "weight": 20, "minLevel": 12, "maxLevel": 18, "groupSize": { "min": 1, "max": 3 } },
+          { "creatureId": "geode_crab", "weight": 25, "minLevel": 8, "maxLevel": 14, "groupSize": { "min": 1, "max": 2 } }
+        ],
+        "night": [
+          { "creatureId": "crystal_lurker", "weight": 30, "minLevel": 18, "maxLevel": 25, "groupSize": { "min": 1, "max": 2 } },
+          { "creatureId": "shadow_crystal", "weight": 20, "minLevel": 20, "maxLevel": 28, "groupSize": { "min": 1, "max": 1 } },
+          { "creatureId": "gem_bat", "weight": 25, "minLevel": 12, "maxLevel": 20, "groupSize": { "min": 5, "max": 12 } },
+          { "creatureId": "luminous_worm", "weight": 25, "minLevel": 6, "maxLevel": 12, "groupSize": { "min": 2, "max": 5 } }
+        ]
+      },
+      "resources": [
+        { "itemId": "crystal_shard", "chance": 0.8, "quantity": { "min": 3, "max": 6 } },
+        { "itemId": "rare_ore", "chance": 0.4, "quantity": { "min": 1, "max": 3 } },
+        { "itemId": "gemstone", "chance": 0.3, "quantity": { "min": 1, "max": 2 } },
+        { "itemId": "light_essence", "chance": 0.2, "quantity": { "min": 1, "max": 2 } }
+      ],
+      "ambient": {
+        "skyColor": { "r": 0.3, "g": 0.2, "b": 0.5 },
+        "fogColor": { "r": 0.4, "g": 0.3, "b": 0.6 },
+        "fogDensity": 0.03,
+        "ambientSound": "ambient_cave_dripping",
+        "musicDay": "music_cave_crystalline",
+        "musicNight": "music_cave_deep"
+      },
+      "weather": [
+        { "type": "stable", "weight": 70 },
+        { "type": "crystal_rain", "weight": 15 },
+        { "type": "tremor", "weight": 10 },
+        { "type": "gas_leak", "weight": 5 }
+      ],
+      "pointsOfInterest": [
+        { "type": "crystal_heart", "chance": 0.01, "minDistance": 1000 },
+        { "type": "ancient_mine", "chance": 0.03, "minDistance": 300 },
+        { "type": "geode_chamber", "chance": 0.05, "minDistance": 150 }
+      ]
+    }
+  ],
+  "transitions": {
+    "spirit_plains": ["floating_mountains", "ancient_forest", "crystal_caves"],
+    "floating_mountains": ["spirit_plains", "ash_desert"],
+    "ash_desert": ["floating_mountains", "volcanic_wastes", "toxic_swamp"],
+    "toxic_swamp": ["ash_desert", "deep_ocean", "ancient_forest"],
+    "deep_ocean": ["toxic_swamp", "volcanic_wastes"],
+    "crystal_caves": ["spirit_plains", "volcanic_wastes", "deep_ocean"],
+    "ancient_forest": ["spirit_plains", "toxic_swamp", "floating_mountains"],
+    "volcanic_wastes": ["ash_desert", "deep_ocean", "crystal_caves"]
+  }
+}

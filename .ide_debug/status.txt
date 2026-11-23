@@ -1,0 +1,4 @@
+=== AI Coding IDE — Status ===
+Timestamp  : 23/11/2026 12:57:50
+Workspace  : /storage/emulated/0/IDE-ANDROID
+Modelo     : custom:claude-fable-5-2

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>character_suit — Visualizador 3D Interativo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #07090e; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #f8fafc; }
+    #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    .top-bar {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px);
+      padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 10;
+    }
+    .model-title { font-size: 14px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .badge { font-size: 11px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 6px; }
+    .bottom-hud {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 32px); max-width: 560px;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px);
+      padding: 14px 18px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex; flex-direction: column; gap: 10px; z-index: 10;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .hud-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn:hover { background: #334155; }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .btn-primary:hover { background: #0369a1; }
+    select {
+      background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f1f5f9; padding: 7px 10px; border-radius: 8px; font-size: 12px;
+      outline: none; flex: 1; min-width: 140px;
+    }
+    input[type=range] { flex: 1; accent-color: #38bdf8; cursor: pointer; }
+    .status-badge { font-size: 11px; color: #94a3b8; margin-left: auto; }
+    #loading-overlay {
+      position: absolute; inset: 0; background: #07090e; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <!-- Three.js Bundle Local (100% Offline e Rápido) com Fallback CDN -->
+  <script src="http://127.0.0.1:8085/3d/three_bundle.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\\/script>');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"><\\/script>');
+    }
+    window.addEventListener('error', function(e) {
+      var ov = document.getElementById('loading-overlay');
+      if (ov) {
+        ov.innerHTML = '<div style="color:#ef4444;text-align:center;padding:24px;font-family:sans-serif;">' +
+          '<p style="font-size:16px;font-weight:bold;margin-bottom:8px;">⚠️ Erro ao Inicializar Visualizador</p>' +
+          '<p style="font-size:12px;color:#cbd5e1;">' + (e.message || 'Falha ao carregar motor Three.js') + '</p>' +
+          '</div>';
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p style="margin-top: 14px; font-size: 13px; color: #94a3b8;">Carregando character_suit.glb...</p>
+  </div>
+  <div class="top-bar">
+    <div class="model-title">
+      <span>📦</span>
+      <span>character_suit.glb</span>
+      <span class="badge">glTF 2.0</span>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn" id="btnResetCam">Centralizar</button>
+      <button class="btn" id="btnWireframe">Wireframe</button>
+      <button class="btn" id="btnSkeleton">Esqueleto</button>
+    </div>
+  </div>
+  <div id="canvas-container"></div>
+  <div class="bottom-hud">
+    <div class="hud-row">
+      <select id="animSelect">
+        <option value="">(Carregando animações...)</option>
+      </select>
+      <button class="btn btn-primary" id="btnPlayPause">▶ Play</button>
+      <button class="btn" id="btnStop">⏹ Stop</button>
+      <button class="btn" id="btnSpeed">1.0x</button>
+    </div>
+    <div class="hud-row">
+      <input type="range" id="timeScrubber" min="0" max="1000" value="0">
+      <span class="status-badge" id="timeLabel">0.0s / 0.0s</span>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+    scene.fog = new THREE.FogExp2(0x0f172a, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(4, 3, 5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // Iluminação rica para evitar sombras 100% pretas
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.8);
+    scene.add(hemiLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.4);
+    dirLight1.position.set(5, 10, 7);
+    scene.add(dirLight1);
+    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.8);
+    dirLight2.position.set(-5, 4, -5);
+    scene.add(dirLight2);
+
+    const grid = new THREE.GridHelper(20, 20, 0x38bdf8, 0x1e293b);
+    grid.position.y = -0.01;
+    scene.add(grid);
+
+    let mixer = null;
+    let clips = [];
+    let currentAction = null;
+    let isPlaying = false;
+    let skeletonHelper = null;
+    let currentSpeed = 1.0;
+    let modelRoot = null;
+
+    const loader = new THREE.GLTFLoader();
+    const modelUrl = './character_suit.glb';
+
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        document.getElementById('loading-overlay').style.display = 'none';
+        modelRoot = gltf.scene;
+
+        // Garante DoubleSide em todas as malhas para evitar faces invisíveis/pretas
+        modelRoot.traverse((node) => {
+          if (node.isMesh && node.material) {
+            if (Array.isArray(node.material)) {
+              node.material.forEach((m) => { m.side = THREE.DoubleSide; });
+            } else {
+              node.material.side = THREE.DoubleSide;
+            }
+          }
+        });
+
+        scene.add(modelRoot);
+
+        const box = new THREE.Box3().setFromObject(modelRoot);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z, 0.5);
+        const fov = camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.8;
+        if (cameraZ < 2.5) cameraZ = 2.5;
+
+        modelRoot.position.set(-center.x, -box.min.y, -center.z);
+        camera.position.set(0, maxDim * 0.7, cameraZ);
+        controls.target.set(0, maxDim * 0.35, 0);
+        controls.update();
+
+        skeletonHelper = new THREE.SkeletonHelper(modelRoot);
+        skeletonHelper.visible = false;
+        scene.add(skeletonHelper);
+
+        clips = gltf.animations || [];
+        const select = document.getElementById('animSelect');
+        select.innerHTML = '';
+        if (clips.length > 0) {
+          mixer = new THREE.AnimationMixer(modelRoot);
+          clips.forEach((clip, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.textContent = clip.name || 'Animação ' + (index + 1) + ' (' + clip.duration.toFixed(1) + 's)';
+            select.appendChild(opt);
+          });
+          playClip(0);
+        } else {
+          const opt = document.createElement('option');
+          opt.textContent = '(Sem animações no modelo)';
+          select.appendChild(opt);
+          document.getElementById('btnPlayPause').disabled = true;
+          document.getElementById('btnStop').disabled = true;
+          document.getElementById('timeScrubber').disabled = true;
+        }
+      },
+      undefined,
+      (err) => {
+        document.getElementById('loading-overlay').innerHTML = 
+          '<div style="color:#ef4444;font-size:13px;padding:24px;text-align:center;font-family:sans-serif;">' +
+          '<p style="font-weight:bold;margin-bottom:6px;">⚠️ Falha ao Carregar Modelo 3D</p>' +
+          '<p style="color:#cbd5e1;font-size:11.5px;margin-bottom:8px;">Arquivo: character_suit.glb</p>' +
+          '<p style="color:#f87171;font-size:11px;">' + (err && err.message ? err.message : 'Verifique se o binário GLB foi gerado corretamente.') + '</p>' +
+          '</div>';
+      }
+    );
+
+    function playClip(index) {
+      if (!mixer || !clips[index]) return;
+      if (currentAction) currentAction.fadeOut(0.2);
+      currentAction = mixer.clipAction(clips[index]);
+      currentAction.reset().fadeIn(0.2).play();
+      isPlaying = true;
+      document.getElementById('btnPlayPause').textContent = '⏸ Pause';
+    }
+
+    document.getElementById('animSelect').addEventListener('change', (e) => {
+      playClip(parseInt(e.target.value));
+    });
+
+    document.getElementById('btnPlayPause').addEventListener('click', () => {
+      if (!currentAction) return;
+      if (isPlaying) {
+        currentAction.paused = true;
+        isPlaying = false;
+        document.getElementById('btnPlayPause').textContent = '▶ Play';
+      } else {
+        currentAction.paused = false;
+        isPlaying = true;
+        document.getElementById('btnPlayPause').textContent = '⏸ Pause';
+      }
+    });
+
+    document.getElementById('btnStop').addEventListener('click', () => {
+      if (!currentAction) return;
+      currentAction.stop();
+      isPlaying = false;
+      document.getElementById('btnPlayPause').textContent = '▶ Play';
+      document.getElementById('timeScrubber').value = 0;
+    });
+
+    const speeds = [0.5, 1.0, 1.5, 2.0];
+    document.getElementById('btnSpeed').addEventListener('click', () => {
+      const idx = (speeds.indexOf(currentSpeed) + 1) % speeds.length;
+      currentSpeed = speeds[idx];
+      document.getElementById('btnSpeed').textContent = currentSpeed.toFixed(1) + 'x';
+      if (mixer) mixer.timeScale = currentSpeed;
+    });
+
+    document.getElementById('btnWireframe').addEventListener('click', () => {
+      if (!modelRoot) return;
+      modelRoot.traverse((child) => {
+        if (child.isMesh && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m.wireframe = !m.wireframe);
+          } else {
+            child.material.wireframe = !child.material.wireframe;
+          }
+        }
+      });
+    });
+
+    document.getElementById('btnSkeleton').addEventListener('click', () => {
+      if (skeletonHelper) skeletonHelper.visible = !skeletonHelper.visible;
+    });
+
+    document.getElementById('btnResetCam').addEventListener('click', () => {
+      if (!modelRoot) return;
+      const box = new THREE.Box3().setFromObject(modelRoot);
+      const center = box.getCenter(new THREE.Vector3());
+      controls.target.copy(center);
+      camera.position.set(center.x + 4, center.y + 3, center.z + 5);
+      controls.update();
+    });
+
+    const scrubber = document.getElementById('timeScrubber');
+    scrubber.addEventListener('input', () => {
+      if (!currentAction || !currentAction.getClip()) return;
+      const dur = currentAction.getClip().duration;
+      currentAction.time = (scrubber.value / 1000) * dur;
+      if (mixer) mixer.update(0);
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer && isPlaying) {
+        mixer.update(delta);
+        if (currentAction && currentAction.getClip()) {
+          const dur = currentAction.getClip().duration;
+          const curTime = (currentAction.time % dur);
+          scrubber.value = (curTime / dur) * 1000;
+          document.getElementById('timeLabel').textContent = curTime.toFixed(1) + 's / ' + dur.toFixed(1) + 's';
+        }
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

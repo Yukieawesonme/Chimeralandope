@@ -1,0 +1,215 @@
+{
+  "id": "weapon_sword_long",
+  "name": "Espada Longa Espiritual",
+  "type": "sword",
+  "slot": 0,
+  "baseDamage": 45,
+  "attackSpeed": 1.2,
+  "range": 2.5,
+  "staminaCost": 8,
+  "poiseDamage": 12,
+  "knockback": 3,
+  "criticalChance": 10,
+  "criticalMultiplier": 1.5,
+  "elementalType": "physical",
+  "elementalDamage": 0,
+  "moveset": [
+    {
+      "id": "sword_light_1",
+      "name": "Corte Ascendente",
+      "damageMultiplier": 0.8,
+      "poiseMultiplier": 0.5,
+      "startupFrames": 6,
+      "activeFrames": 4,
+      "recoveryFrames": 8,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.2, "z": 1.5 },
+          "size": { "x": 1.5, "y": 1, "z": 2 },
+          "shape": "box",
+          "damageMultiplier": 1.0,
+          "angle": 0,
+          "knockback": 2
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 1.5 },
+      "canCancelInto": ["sword_light_2", "sword_heavy", "dash"],
+      "animation": "sword_light_1",
+      "soundEffect": "sword_swing_1",
+      "effects": ["slash_trail_1"]
+    },
+    {
+      "id": "sword_light_2",
+      "name": "Corte Descendente",
+      "damageMultiplier": 0.9,
+      "poiseMultiplier": 0.6,
+      "startupFrames": 5,
+      "activeFrames": 4,
+      "recoveryFrames": 8,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.5, "z": 1.8 },
+          "size": { "x": 1.8, "y": 1.2, "z": 2.2 },
+          "shape": "box",
+          "damageMultiplier": 1.0,
+          "angle": -15,
+          "knockback": 3
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 1.2 },
+      "canCancelInto": ["sword_light_3", "sword_heavy", "dash"],
+      "animation": "sword_light_2",
+      "soundEffect": "sword_swing_2",
+      "effects": ["slash_trail_2"]
+    },
+    {
+      "id": "sword_light_3",
+      "name": "Giro Cortante",
+      "damageMultiplier": 1.0,
+      "poiseMultiplier": 0.7,
+      "startupFrames": 7,
+      "activeFrames": 5,
+      "recoveryFrames": 10,
+      "hitboxCount": 2,
+      "hitboxes": [
+        {
+          "offset": { "x": -1, "y": 1, "z": 1.5 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2 },
+          "shape": "box",
+          "damageMultiplier": 0.8,
+          "angle": 0,
+          "knockback": 4
+        },
+        {
+          "offset": { "x": 1, "y": 1, "z": 1.5 },
+          "size": { "x": 1.5, "y": 1.5, "z": 2 },
+          "shape": "box",
+          "damageMultiplier": 0.8,
+          "angle": 0,
+          "knockback": 4
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 1 },
+      "canCancelInto": ["sword_light_4", "dash"],
+      "animation": "sword_light_3",
+      "soundEffect": "sword_spin",
+      "effects": ["slash_trail_3", "spin_effect"]
+    },
+    {
+      "id": "sword_light_4",
+      "name": "Estocada",
+      "damageMultiplier": 1.2,
+      "poiseMultiplier": 1.0,
+      "startupFrames": 8,
+      "activeFrames": 4,
+      "recoveryFrames": 12,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.3, "z": 2.5 },
+          "size": { "x": 0.8, "y": 0.8, "z": 3 },
+          "shape": "box",
+          "damageMultiplier": 1.0,
+          "angle": 0,
+          "knockback": 6
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 3 },
+      "canCancelInto": ["sword_light_5", "dash"],
+      "animation": "sword_thrust",
+      "soundEffect": "sword_thrust",
+      "effects": ["pierce_trail"]
+    },
+    {
+      "id": "sword_light_5",
+      "name": "Corte Final",
+      "damageMultiplier": 1.5,
+      "poiseMultiplier": 1.5,
+      "startupFrames": 10,
+      "activeFrames": 6,
+      "recoveryFrames": 18,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.5, "z": 2 },
+          "size": { "x": 2.5, "y": 2, "z": 2.5 },
+          "shape": "box",
+          "damageMultiplier": 1.0,
+          "angle": 20,
+          "knockback": 10
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 2, "z": 2 },
+      "canCancelInto": ["dash"],
+      "animation": "sword_finisher",
+      "soundEffect": "sword_heavy_impact",
+      "effects": ["slash_trail_finisher", "shockwave"]
+    },
+    {
+      "id": "sword_heavy",
+      "name": "Golpe Carregado",
+      "damageMultiplier": 2.0,
+      "poiseMultiplier": 2.5,
+      "startupFrames": 20,
+      "activeFrames": 6,
+      "recoveryFrames": 25,
+      "hitboxCount": 1,
+      "hitboxes": [
+        {
+          "offset": { "x": 0, "y": 1.5, "z": 2.2 },
+          "size": { "x": 2, "y": 2, "z": 2.5 },
+          "shape": "box",
+          "damageMultiplier": 1.0,
+          "angle": 0,
+          "knockback": 15
+        }
+      ],
+      "movementImpulse": { "x": 0, "y": 0, "z": 1 },
+      "canCancelInto": [],
+      "animation": "sword_charge_attack",
+      "soundEffect": "sword_charge_release",
+      "effects": ["charge_glow", "heavy_impact"]
+    }
+  ],
+  "switchAttack": {
+    "id": "sword_switch",
+    "name": "Troca: Corte Relâmpago",
+    "damageMultiplier": 1.3,
+    "poiseMultiplier": 1.0,
+    "startupFrames": 4,
+    "activeFrames": 4,
+    "recoveryFrames": 10,
+    "hitboxCount": 1,
+    "hitboxes": [
+      {
+        "offset": { "x": 0, "y": 1.2, "z": 2 },
+        "size": { "x": 1.5, "y": 1.5, "z": 2.5 },
+        "shape": "box",
+        "damageMultiplier": 1.0,
+        "angle": 0,
+        "knockback": 5
+      }
+    ],
+    "movementImpulse": { "x": 0, "y": 0, "z": 2.5 },
+    "canCancelInto": ["sword_light_2"],
+    "animation": "sword_switch_attack",
+    "soundEffect": "sword_swap_slash",
+    "effects": ["lightning_trail", "swap_flash"]
+  },
+  "uniqueMechanic": {
+    "type": "parry",
+    "window": 0.3,
+    "staminaRestore": 15,
+    "counterWindow": 0.5,
+    "counterDamageMultiplier": 1.5,
+    "perfectParryBonus": 1.25
+  },
+  "skillIds": ["skill_lightning_dash", "skill_whirlwind_slash", "skill_parry_mastery"],
+  "craftCost": [
+    { "itemId": "iron_ore", "quantity": 20 },
+    { "itemId": "spirit_essence", "quantity": 5 },
+    { "itemId": "ancient_wood", "quantity": 10 }
+  ]
+}

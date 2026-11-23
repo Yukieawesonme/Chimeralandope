@@ -1,0 +1,106 @@
+{
+  "reactions": [
+    {
+      "name": "Overload",
+      "elements": ["fire", "lightning"],
+      "damageMultiplier": 1.5,
+      "radius": 4,
+      "effect": "explosion_electric",
+      "applyStatus": null,
+      "description": "Fire + Lightning = Explosão elétrica em área"
+    },
+    {
+      "name": "Superconduct",
+      "elements": ["ice", "lightning"],
+      "damageMultiplier": 0.5,
+      "radius": 3,
+      "effect": "ice_lightning_burst",
+      "applyStatus": "superconduct",
+      "description": "Ice + Lightning = Reduz defesa em 40% por 8s"
+    },
+    {
+      "name": "Melt",
+      "elements": ["fire", "ice"],
+      "damageMultiplier": 2.0,
+      "radius": 2,
+      "effect": "melt_explosion",
+      "applyStatus": null,
+      "description": "Fire + Ice = Dano extra massivo (2x)"
+    },
+    {
+      "name": "Vaporize",
+      "elements": ["fire", "water"],
+      "damageMultiplier": 2.5,
+      "radius": 3,
+      "effect": "steam_explosion",
+      "applyStatus": null,
+      "description": "Fire + Water = Dano extra massivo (2.5x)"
+    },
+    {
+      "name": "Shatter",
+      "elements": ["blunt", "freeze"],
+      "damageMultiplier": 3.0,
+      "radius": 2,
+      "effect": "shatter_ice",
+      "applyStatus": null,
+      "description": "Blunt on Frozen = Estilhaça gelo (3x dano)"
+    },
+    {
+      "name": "Electro-Charged",
+      "elements": ["lightning", "water"],
+      "damageMultiplier": 1.2,
+      "radius": 4,
+      "effect": "electro_charged_tick",
+      "applyStatus": "electrified",
+      "description": "Lightning + Water = Dano contínuo em área, salta entre inimigos"
+    },
+    {
+      "name": "Burning",
+      "elements": ["fire", "poison"],
+      "damageMultiplier": 1.3,
+      "radius": 3,
+      "effect": "toxic_fire",
+      "applyStatus": "burn",
+      "description": "Fire + Poison = Queimadura tóxica (DoT aumentado)"
+    },
+    {
+      "name": "Frozen",
+      "elements": ["ice", "wet"],
+      "damageMultiplier": 0,
+      "radius": 0,
+      "effect": "freeze_apply",
+      "applyStatus": "freeze",
+      "description": "Ice + Wet = Congela inimigo (Root + Shatter vulnerable)"
+    },
+    {
+      "name": "Crystallize",
+      "elements": ["earth", "fire", "ice", "lightning", "water"],
+      "damageMultiplier": 0,
+      "radius": 2,
+      "effect": "crystal_shield",
+      "applyStatus": "crystal_shield",
+      "description": "Earth + Elemental = Cria escudo elemental correspondente"
+    },
+    {
+      "name": "Swirl",
+      "elements": ["wind", "fire", "ice", "lightning", "water"],
+      "damageMultiplier": 0.6,
+      "radius": 5,
+      "effect": "swirl_elemental",
+      "applyStatus": null,
+      "description": "Wind + Elemental = Espalha elemento em área maior"
+    }
+  ],
+  "statusEffects": {
+    "burn": { "tickDamage": 0.02, "tickInterval": 1, "maxStacks": 5, "spreadRadius": 3 },
+    "freeze": { "duration": 4, "root": true, "shatterMultiplier": 3, "thawOnFire": true },
+    "chill": { "slowPerStack": 0.15, "maxStacks": 3, "freezeAtStacks": 3, "duration": 6 },
+    "shock": { "chainRange": 4, "chainCount": 3, "damagePerJump": 0.7, "stunChance": 0.1 },
+    "electrified": { "nextHitStun": true, "stunDuration": 1, "damageBonus": 0.5 },
+    "poison": { "tickDamage": 0.015, "tickInterval": 1, "maxStacks": 10, "healReduction": 0.5 },
+    "bleed": { "tickDamage": 0.03, "tickInterval": 1, "maxStacks": 5, "maxHpPercent": true },
+    "wet": { "conductivity": 1.5, "fireResist": 0.5, "duration": 10 },
+    "superconduct": { "defenseReduction": 0.4, "duration": 8 },
+    "crystal_shield": { "shieldHp": 100, "elementalResist": 0.5, "duration": 15 }
+  }
+}
