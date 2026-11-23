@@ -26,6 +26,9 @@ import {
 } from '@core/Types.js';
 import { ENGINE_CONFIG } from '@core/Config.js';
 
+// Re-export for consumers
+export type { SaveGameData } from '@core/Types.js';
+
 // ============================================================================
 // ZOD SCHEMAS FOR VALIDATION
 // ============================================================================

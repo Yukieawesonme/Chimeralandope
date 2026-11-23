@@ -10,6 +10,8 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { AssetManifestEntry, AssetRole, PBRMaterialData } from '@core/Types.js';
 
+export type { AssetManifestEntry } from '@core/Types.js';
+
 // ============================================================================
 // LOAD RESULT TYPES
 // ============================================================================
