@@ -149,6 +149,7 @@ async function initializeMenuAndLoading(): Promise<void> {
 }
 
 function handleStateChange(newState: GameState, oldState: GameState): void {
+  console.log(`[Main] handleStateChange: ${oldState} -> ${newState}`);
   const loadingScreenEl = document.getElementById('loading-screen');
   const mainMenu = document.getElementById('main-menu');
   const pauseMenu = document.getElementById('pause-menu');
@@ -164,17 +165,21 @@ function handleStateChange(newState: GameState, oldState: GameState): void {
 
   switch (newState) {
     case GameState.Loading:
+      console.log('[Main] Showing loading screen');
       loadingScreenEl?.classList.remove('hidden');
       break;
     case GameState.MainMenu:
+      console.log('[Main] Showing main menu');
       mainMenu?.classList.remove('hidden');
       mainMenu3D.activate();
       break;
     case GameState.Gameplay:
+      console.log('[Main] Showing gameplay HUD');
       hud?.classList.remove('hidden');
       mainMenu3D.deactivate();
       break;
     case GameState.PauseMenu:
+      console.log('[Main] Showing pause menu');
       pauseMenu?.classList.remove('hidden');
       hud?.classList.remove('hidden');
       break;
@@ -194,6 +199,7 @@ function updateLoadingScreenUI(progress: any): void {
 }
 
 function onLoadingComplete(saveData?: any): void {
+  console.log('[Main] onLoadingComplete called, saveData:', saveData);
   // If loading a save, restore player state
   if (saveData) {
     playerSystem.deserializePlayerState(saveData.player);
@@ -202,7 +208,9 @@ function onLoadingComplete(saveData?: any): void {
   }
 
   // Enter gameplay
+  console.log('[Main] Changing state to Gameplay...');
   engine.changeState(GameState.Gameplay);
+  console.log('[Main] State changed to Gameplay');
 }
 
 function showErrorScreen(message: string): void {
@@ -345,13 +353,16 @@ async function loadGame(slot: string): Promise<void> {
 }
 
 function startNewGame(): void {
+  console.log('[Main] startNewGame called');
   // Generate new world seed
   const seed = `chimeraland_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   saveManager.setWorldSeed(seed);
   biomeManager = new BiomeManager(seed);
 
   // Show loading screen
+  console.log('[Main] Changing state to Loading...');
   engine.changeState(GameState.Loading);
+  console.log('[Main] State changed to Loading, starting loadingScreen...');
 
   loadingScreen.startNewGame(seed);
 }

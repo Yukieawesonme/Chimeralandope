@@ -69,17 +69,23 @@ export class GameEngine {
   // ---- Initialization ----
 
   async initialize(): Promise<void> {
+    console.log('[GameEngine] Starting initialization...');
     this.changeState(GameState.Loading);
 
     try {
       // Load core assets
+      console.log('[GameEngine] Loading core assets...');
       await this.loadCoreAssets();
+      console.log('[GameEngine] Core assets loaded');
 
       // Initialize game systems
+      console.log('[GameEngine] Initializing systems...');
       this.initializeSystems();
+      console.log('[GameEngine] Systems initialized');
 
       console.log('[GameEngine] Initialization complete');
       this.changeState(GameState.MainMenu);
+      console.log('[GameEngine] State changed to MainMenu');
     } catch (error) {
       console.error('[GameEngine] Initialization failed:', error);
       throw error;
@@ -87,15 +93,19 @@ export class GameEngine {
   }
 
   private async loadCoreAssets(): Promise<void> {
+    console.log('[GameEngine] Loading shaders...');
     this.onLoadingProgress?.(0.1, 'Loading shaders...');
     // Shaders would be loaded here
 
+    console.log('[GameEngine] Loading core models...');
     this.onLoadingProgress?.(0.3, 'Loading core models...');
     // Core models (player, basic weapons, etc.)
 
+    console.log('[GameEngine] Loading environment...');
     this.onLoadingProgress?.(0.6, 'Loading environment...');
     // Skybox, base terrain materials
 
+    console.log('[GameEngine] Core assets ready');
     this.onLoadingProgress?.(1.0, 'Ready');
   }
 
@@ -195,7 +205,9 @@ export class GameEngine {
     // State-specific logic
     this.onStateEnter(newState, oldState);
 
+    console.log(`[GameEngine] Calling onStateChange callback...`);
     this.onStateChange?.(newState, oldState);
+    console.log(`[GameEngine] onStateChange callback done`);
   }
 
   private onStateEnter(newState: GameState, oldState: GameState): void {

@@ -143,10 +143,12 @@ export class LoadingScreen {
 
   private async runLoadingSequence(): Promise<void> {
     try {
+      console.log('[LoadingScreen] Starting loading sequence...');
       this.currentStage = LoadingStage.GeneratingTerrain;
       this.reportProgress();
 
       for (const stage of this.stageOrder) {
+        console.log(`[LoadingScreen] Starting stage: ${stage}`);
         this.currentStage = stage;
         this.stageProgress = 0;
         this.reportProgress();
@@ -169,10 +171,12 @@ export class LoadingScreen {
             break;
         }
 
+        console.log(`[LoadingScreen] Completed stage: ${stage}`);
         this.stageProgress = 1;
         this.reportProgress();
       }
 
+      console.log('[LoadingScreen] All stages complete!');
       this.currentStage = LoadingStage.Complete;
       this.overallProgress = 1;
       this.currentMessage = 'Pronto!';
@@ -181,8 +185,11 @@ export class LoadingScreen {
       // Small delay to show complete state
       await this.sleep(300);
 
+      console.log('[LoadingScreen] Calling onCompleteCallback...');
       this.onCompleteCallback?.(this.loadSaveData || undefined);
+      console.log('[LoadingScreen] onCompleteCallback done');
     } catch (error) {
+      console.error('[LoadingScreen] Error:', error);
       this.onErrorCallback?.(error as Error);
       throw error;
     }
@@ -193,6 +200,7 @@ export class LoadingScreen {
   // ============================================================================
 
   private async generateTerrain(): Promise<void> {
+    console.log('[LoadingScreen] Generating terrain...');
     this.currentMessage = 'Gerando terreno e chunks...';
     this.currentDetails = 'Calculando heightmap procedural...';
     this.reportProgress(0.1);
@@ -216,7 +224,9 @@ export class LoadingScreen {
 
         // Generate if not already generated
         if (!chunk.isLoaded) {
+          console.log(`[LoadingScreen] Generating chunk ${cx},${cz}...`);
           this.terrainSystem.generateChunk(chunk);
+          console.log(`[LoadingScreen] Chunk ${cx},${cz} generated`);
         }
 
         generated++;
@@ -226,7 +236,9 @@ export class LoadingScreen {
     }
 
     // Run terrain update to finalize LODs, etc.
+    console.log('[LoadingScreen] Running terrain update...');
     this.terrainSystem.update(0);
+    console.log('[LoadingScreen] Terrain update done');
 
     this.currentDetails = 'Terreno gerado com sucesso';
     this.reportProgress(1);
@@ -234,6 +246,7 @@ export class LoadingScreen {
   }
 
   private async loadAssets(): Promise<void> {
+    console.log('[LoadingScreen] Loading assets...');
     this.currentMessage = 'Carregando assets 3D e texturas...';
     this.currentDetails = 'Preparando pipeline de assets...';
     this.reportProgress(0);
@@ -260,25 +273,30 @@ export class LoadingScreen {
 
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i]!;
+        console.log(`[LoadingScreen] Asset step: ${step}`);
         this.currentDetails = step;
         this.updateStageProgress((i + 1) / steps.length, step);
         await this.sleep(80);
       }
     }
 
+    console.log('[LoadingScreen] Assets loaded');
     this.currentDetails = 'Assets carregados';
     this.reportProgress(1);
     await this.sleep(100);
   }
 
   private async restoreEntities(): Promise<void> {
+    console.log('[LoadingScreen] Restoring entities...');
     this.currentMessage = 'Restaurando entidades do save...';
     this.reportProgress(0);
 
     if (!this.loadSaveData) {
       // New game - create fresh player
       this.currentDetails = 'Criando novo jogador...';
+      console.log('[LoadingScreen] Creating new player...');
       this.playerSystem.createPlayer({ x: 0, y: 35, z: 0 });
+      console.log('[LoadingScreen] Player created');
       this.reportProgress(0.5);
       await this.sleep(50);
 
@@ -286,6 +304,7 @@ export class LoadingScreen {
       // Inventory already initialized in createPlayer
       this.reportProgress(1);
       await this.sleep(50);
+      console.log('[LoadingScreen] New game entities ready');
       return;
     }
 
@@ -316,9 +335,11 @@ export class LoadingScreen {
     this.currentDetails = 'Save restaurado com sucesso';
     this.reportProgress(1);
     await this.sleep(100);
+    console.log('[LoadingScreen] Entities restored');
   }
 
   private async warmPools(): Promise<void> {
+    console.log('[LoadingScreen] Warming pools...');
     this.currentMessage = 'Aquecendo object pools...';
     this.currentDetails = 'Pré-alocando partículas, projéteis, efeitos...';
     this.reportProgress(0.3);
@@ -327,9 +348,11 @@ export class LoadingScreen {
     this.currentDetails = 'Pools prontos';
     this.reportProgress(1);
     await this.sleep(50);
+    console.log('[LoadingScreen] Pools warmed');
   }
 
   private async finalize(): Promise<void> {
+    console.log('[LoadingScreen] Finalizing...');
     this.currentMessage = 'Finalizando...';
     this.currentDetails = 'Aplicando configurações gráficas...';
     this.reportProgress(0.3);
@@ -342,6 +365,7 @@ export class LoadingScreen {
     this.currentDetails = 'Pronto para jogar!';
     this.reportProgress(1);
     await this.sleep(50);
+    console.log('[LoadingScreen] Finalized');
   }
 
   // ============================================================================
