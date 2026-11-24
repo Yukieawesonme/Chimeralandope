@@ -33,6 +33,9 @@ export class PlayerComponent {
   maxFury: number = PLAYER_CONFIG.maxFury;
   oxygen: number = 100;
 
+  // Inventory reference (set by PlayerSystem after creation)
+  inventory: InventoryComponent | null = null;
+
   // Movement
   velocity: Vec3 = { x: 0, y: 0, z: 0 };
   moveInput: Vec3 = { x: 0, y: 0, z: 0 };
@@ -212,6 +215,9 @@ export class PlayerSystem extends BaseSystem {
     this.inventoryComp.addItem('stone', 20);
     this.inventoryComp.addItem('health_potion', 5);
     this.world.addComponent(entityId, this.inventoryComp);
+
+    // Link inventory to player component
+    this.playerComp.inventory = this.inventoryComp;
 
     // Name & Tag
     const nameComp = new NameComponent(entityId, 'Player');

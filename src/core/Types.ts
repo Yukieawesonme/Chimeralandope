@@ -209,6 +209,31 @@ export enum ActionName {
   PhotoMode = 'PhotoMode',
 }
 
+export type DamageElement = 'physical' | 'fire' | 'ice' | 'lightning' | 'poison' | 'spirit';
+
+// ============================================================================
+// WEAPON CONFIG TYPES
+// ============================================================================
+
+export interface WeaponTypeConfig {
+  type: WeaponType;
+  damage: number;
+  attackSpeed: number; // attacks per second
+  range: number;
+  angle: number;
+  staminaCost: number;
+  knockback: number;
+  staggerPower: number;
+  comboCount: number;
+  skills: string[];
+  hitboxShape: 'capsule' | 'box' | 'sphere' | 'ray' | 'cone';
+  hitboxSize: Record<string, number>;
+  projectileSpeed?: number;
+  projectileGravity?: number;
+  elementalDamage?: DamageElement;
+  shellDamage?: number;
+}
+
 // ============================================================================
 // ASSET TYPES
 // ============================================================================

@@ -6,9 +6,9 @@
 import * as THREE from 'three';
 import { World, EntityId, BaseSystem } from '@core/ECS.js';
 import { TransformComponent } from '@core/ECS.js';
-import { Vec3, Quat, DamageType, DamageElement } from '@core/Types.js';
+import { Vec3, Quat, DamageType, DamageElement, WeaponType } from '@core/Types.js';
 import { CREATURE_DEFINITIONS } from '@creatures/CreatureTypes.js';
-import { PLAYER_CONFIG, WEAPON_CONFIG, WeaponTypeConfig, WeaponType, ITEM_DEFINITIONS } from '@core/Config.js';
+import { PLAYER_CONFIG, WEAPON_CONFIG, WeaponTypeConfig, ITEM_DEFINITIONS } from '@core/Config.js';
 
 // ============================================================================
 // HITBOX & HIT DATA
@@ -108,8 +108,8 @@ export class CombatSystem3D extends BaseSystem {
 
   // Configuration
   private globalHitstopMultiplier = 1.0;
-  private lockOnRange = PLAYER_CONFIG.lockOnRange;
-  private lockOnAngle = PLAYER_CONFIG.lockOnAngle;
+  private lockOnRange: number = PLAYER_CONFIG.lockOnRange;
+  private lockOnAngle: number = PLAYER_CONFIG.lockOnAngle;
   private lockOnStickiness = 0.8; // How much camera sticks to target
 
   // Hitstop callback
@@ -118,8 +118,9 @@ export class CombatSystem3D extends BaseSystem {
   public onParry?: (parrierId: EntityId, attackerId: EntityId) => void;
   public onKill?: (killerId: EntityId, victimId: EntityId) => void;
 
-  constructor(private world: World) {
+  constructor(world: World) {
     super();
+    this.setWorld(world);
   }
 
   // ============================================================================
@@ -196,7 +197,8 @@ export class CombatSystem3D extends BaseSystem {
     if (!attackerTransform) return [];
 
     const hitboxIds: string[] = [];
-    const patterns = CREATURE_DEFINITIONS['player']?.attackPatterns || [];
+    // Use default attack patterns if creature definitions not available
+    const patterns: any[] = [];
     const pattern = patterns.find(p => p.id === attackId) || patterns[0];
 
     if (!pattern) {
@@ -241,7 +243,7 @@ export class CombatSystem3D extends BaseSystem {
     }
 
     // Initialize combat state
-    this.initCombatState(attackerId);
+    this.ensureCombatState(attackerId);
 
     return hitboxIds;
   }
@@ -292,7 +294,8 @@ export class CombatSystem3D extends BaseSystem {
     };
 
     const weaponOffsets = offsets[weaponType] || [{ x: 0, y: 1.2, z: 1.5 }];
-    return weaponOffsets[comboStep % weaponOffsets.length];
+    const offset = weaponOffsets[comboStep % weaponOffsets.length];
+    return offset ?? { x: 0, y: 1.2, z: 1.5 };
   }
 
   // ============================================================================
@@ -524,16 +527,16 @@ export class CombatSystem3D extends BaseSystem {
     return this.sphereCapsuleIntersection(center, expandedRadius, targetCapsule);
   }
 
-  private boxCapsuleIntersection(center: THREE.Vector3, rotation: THREE.Quaternion, size: THREE.Vector3, capsule: any): boolean {
+  private boxCapsuleIntersection(center: THREE.Vector3, rotation: THREE.Quaternion, size: THREE.Vector3, targetCapsule: any): boolean {
     // Simplified: use max dimension as sphere radius
     const maxDim = Math.max(size.x, size.y, size.z) / 2;
     return this.sphereCapsuleIntersection(center, maxDim, targetCapsule);
   }
 
-  private coneCapsuleIntersection(center: THREE.Vector3, rotation: THREE.Quaternion, angle: number, length: number, capsule: any): boolean {
+  private coneCapsuleIntersection(center: THREE.Vector3, rotation: THREE.Quaternion, angle: number, length: number, targetCapsule: any): boolean {
     // Check if capsule center is within cone
     const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(rotation);
-    const toTarget = new THREE.Vector3().subVectors(capsule.center, center);
+    const toTarget = new THREE.Vector3().subVectors(targetCapsule.center, center);
     const dist = toTarget.length();
 
     if (dist > length) return false;
@@ -542,9 +545,9 @@ export class CombatSystem3D extends BaseSystem {
     return cosAngle >= Math.cos(angle / 2);
   }
 
-  private rayCapsuleIntersection(origin: THREE.Vector3, direction: THREE.Vector3, length: number, capsule: any): boolean {
+  private rayCapsuleIntersection(origin: THREE.Vector3, direction: THREE.Vector3, length: number, targetCapsule: any): boolean {
     const ray = new THREE.Ray(origin, direction);
-    const dist = this.closestPointOnCapsule(ray.at(length, new THREE.Vector3()), capsule);
+    const dist = this.closestPointOnCapsule(ray.at(length, new THREE.Vector3()), targetCapsule);
     return dist <= 0.5; // Rough check
   }
 
@@ -653,6 +656,20 @@ export class CombatSystem3D extends BaseSystem {
     window.dispatchEvent(event);
   }
 
+  private ensureCombatState(entityId: EntityId): void {
+    if (!this.combatStates.has(entityId)) {
+      this.combatStates.set(entityId, {
+        isInCombat: true,
+        combatStartTime: performance.now() / 1000,
+        lastHitTime: performance.now() / 1000,
+        hitCombo: 0,
+        maxCombo: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+      });
+    }
+  }
+
   private updateCombatState(attackerId: EntityId, targetId: EntityId, hitResult: HitResult): void {
     let attackerState = this.combatStates.get(attackerId);
     if (!attackerState) {
@@ -731,7 +748,7 @@ export class CombatSystem3D extends BaseSystem {
 
   private updateHitstops(dt: number): void {
     for (let i = this.hitstops.length - 1; i >= 0; i--) {
-      const hs = this.hitstops[i];
+      const hs = this.hitstops[i]!;
       hs.remaining -= dt;
       if (hs.remaining <= 0) {
         this.hitstops.splice(i, 1);
@@ -740,7 +757,8 @@ export class CombatSystem3D extends BaseSystem {
   }
 
   getTotalHitstopRemaining(): number {
-    return Math.max(...this.hitstops.map(h => h.remaining), 0);
+    if (this.hitstops.length === 0) return 0;
+    return Math.max(...this.hitstops.map(h => h.remaining));
   }
 
   // ============================================================================
@@ -855,8 +873,8 @@ export class CombatSystem3D extends BaseSystem {
   }
 
   setLockOnSettings(range: number, angle: number): void {
-    this.lockOnRange = range;
-    this.lockOnAngle = angle;
+    this.lockOnRange = range as number;
+    this.lockOnAngle = angle as number;
   }
 
   // Cleanup

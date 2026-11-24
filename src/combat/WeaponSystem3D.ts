@@ -7,16 +7,8 @@ import { World, EntityId, BaseSystem } from '@core/ECS.js';
 import { TransformComponent } from '@core/ECS.js';
 import { PlayerComponent } from '@entities/Player.js';
 import { CombatSystem3D, Hitbox } from './CombatSystem3D.js';
-import {
-  WeaponType,
-  WeaponTypeConfig,
-  WEAPON_CONFIG,
-  ITEM_DEFINITIONS,
-  ItemType,
-  EquipmentSlot,
-  DamageElement,
-  ActionName,
-} from '@core/Config.js';
+import { WEAPON_CONFIG, ITEM_DEFINITIONS } from '@core/Config.js';
+import { WeaponType, WeaponTypeConfig, ItemType, EquipmentSlot, DamageElement, ActionName } from '@core/Types.js';
 import { InputManager } from '@engine/InputManager.js';
 
 // ============================================================================
@@ -25,8 +17,8 @@ import { InputManager } from '@engine/InputManager.js';
 
 export interface WeaponState {
   weaponId: string | null;
-  weaponType: WeaponType | null;
-  config: WeaponTypeConfig | null;
+  weaponType: WeaponType | undefined;
+  config: WeaponTypeConfig | undefined;
 
   // Combo
   comboStep: number;
@@ -113,7 +105,8 @@ export class WeaponSystem3D extends BaseSystem {
 
   setPlayerEntity(entityId: EntityId): void {
     this.playerEntity = entityId;
-    this.playerComp = this.world.getComponent(entityId, PlayerComponent);
+    const playerComp = this.world.getComponent(entityId, PlayerComponent);
+    this.playerComp = playerComp ?? null;
     this.initializePlayerWeapons(entityId);
   }
 
@@ -121,11 +114,13 @@ export class WeaponSystem3D extends BaseSystem {
     const playerComp = this.playerComp;
     if (!playerComp) return;
 
+    const activeSlot = Math.min(Math.max(playerComp.activeWeaponIndex, 0), 2) as 0 | 1 | 2;
+
     const equipped: EquippedWeapons = {
-      main: this.createWeaponState(playerComp.equippedWeaponIds[0]),
-      offhand: this.createWeaponState(playerComp.equippedWeaponIds[1]),
-      ranged: this.createWeaponState(playerComp.equippedWeaponIds[2]),
-      activeSlot: playerComp.activeWeaponIndex,
+      main: this.createWeaponState(playerComp.equippedWeaponIds[0] ?? null),
+      offhand: this.createWeaponState(playerComp.equippedWeaponIds[1] ?? null),
+      ranged: this.createWeaponState(playerComp.equippedWeaponIds[2] ?? null),
+      activeSlot,
     };
 
     this.weaponStates.set(entityId, equipped);
@@ -167,8 +162,8 @@ export class WeaponSystem3D extends BaseSystem {
   private emptyWeaponState(): WeaponState {
     return {
       weaponId: null,
-      weaponType: null,
-      config: null,
+      weaponType: undefined,
+      config: undefined,
       comboStep: 0,
       comboTimer: 0,
       maxCombo: 0,
@@ -587,13 +582,14 @@ export class WeaponSystem3D extends BaseSystem {
     if (!itemDef || !itemDef.weaponType) return false;
 
     // Check slot compatibility
-    const slotTypes: Record<number, WeaponType[]> = {
+    const slotTypes: Record<0 | 1 | 2, WeaponType[]> = {
       0: [WeaponType.Sword, WeaponType.Axe, WeaponType.Spear, WeaponType.Hammer, WeaponType.Gunlance],
       1: [WeaponType.Daggers, WeaponType.Staff],
       2: [WeaponType.Bow, WeaponType.Gunlance],
     };
 
-    if (!slotTypes[slot].includes(itemDef.weaponType)) return false;
+    const allowedTypes = slotTypes[slot];
+    if (!allowedTypes || !allowedTypes.includes(itemDef.weaponType)) return false;
 
     const newState = this.createWeaponState(weaponId);
 
@@ -757,7 +753,10 @@ export class WeaponSystem3D extends BaseSystem {
 
         // Skill cooldowns
         for (const skillId of Object.keys(weaponState.skillCooldowns)) {
-          weaponState.skillCooldowns[skillId] = Math.max(0, weaponState.skillCooldowns[skillId] - dt);
+          const currentCooldown = weaponState.skillCooldowns[skillId];
+          if (currentCooldown !== undefined) {
+            weaponState.skillCooldowns[skillId] = Math.max(0, currentCooldown - dt);
+          }
         }
 
         // Charge handling (for chargeable weapons)
@@ -824,12 +823,6 @@ export class WeaponSystem3D extends BaseSystem {
   // ============================================================================
   // DEFINITIONS
   // ============================================================================
-
-  private skillDefinitions: Map<string, SkillDefinition> = new Map();
-
-  registerSkill(def: SkillDefinition): void {
-    this.skillDefinitions.set(def.id, def);
-  }
 
   getSkillDefinition(skillId: string): SkillDefinition | undefined {
     return this.skillDefinitions.get(skillId);

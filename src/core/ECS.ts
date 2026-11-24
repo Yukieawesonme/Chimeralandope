@@ -373,9 +373,11 @@ export class NameComponent extends BaseComponent {
 
 export class TagComponent extends BaseComponent {
   tags: Set<string> = new Set();
-  constructor(entityId: EntityId, ...tags: string[]) {
+  constructor(entityId: EntityId, ...args: unknown[]) {
     super(entityId);
-    for (const tag of tags) this.tags.add(tag);
+    for (const tag of args) {
+      if (typeof tag === 'string') this.tags.add(tag);
+    }
   }
   hasTag(tag: string): boolean {
     return this.tags.has(tag);

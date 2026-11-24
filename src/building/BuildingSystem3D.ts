@@ -34,6 +34,7 @@ export interface BuildingPieceDefinition {
   // Stability
   stability: number; // 0-1, how much stability this piece provides
   maxLoad: number; // How much weight it can support
+  maxDurability: number; // Maximum durability
   requiresSupport: boolean; // Needs foundation/ground beneath
 
   // Cost
@@ -122,9 +123,9 @@ export class BuildingSystem3D extends BaseSystem {
   // Preview system
   private currentPreview: BuildPreview | null = null;
   private previewMesh: THREE.Group | null = null;
-  private previewMaterial: THREE.Material;
-  private previewMaterialValid: THREE.Material;
-  private previewMaterialInvalid: THREE.Material;
+  private previewMaterial!: THREE.Material;
+  private previewMaterialValid!: THREE.Material;
+  private previewMaterialInvalid!: THREE.Material;
 
   // Grid/Snap
   private gridSize = BUILDING_CONFIG.gridSize;
@@ -204,6 +205,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 1.0,
       maxLoad: 1000,
+      maxDurability: 2000,
       requiresSupport: false,
       cost: [{ itemId: 'stone', quantity: 10 }, { itemId: 'wood', quantity: 5 }],
       craftTime: 5,
@@ -229,6 +231,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.8,
       maxLoad: 200,
+      maxDurability: 1500,
       requiresSupport: true,
       cost: [{ itemId: 'stone', quantity: 15 }, { itemId: 'wood', quantity: 3 }],
       craftTime: 8,
@@ -258,6 +261,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.6,
       maxLoad: 300,
+      maxDurability: 1000,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 20 }],
       craftTime: 5,
@@ -280,6 +284,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.3,
       maxLoad: 50,
+      maxDurability: 800,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 10 }, { itemId: 'thatch', quantity: 15 }],
       craftTime: 5,
@@ -302,6 +307,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.2,
       maxLoad: 0,
+      maxDurability: 500,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 10 }, { itemId: 'iron_hinge', quantity: 2 }],
       craftTime: 5,
@@ -325,6 +331,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.5,
       maxLoad: 100,
+      maxDurability: 1200,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 15 }, { itemId: 'stone', quantity: 5 }, { itemId: 'iron_bar', quantity: 3 }],
       craftingStation: 'workbench',
@@ -349,6 +356,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.3,
       maxLoad: 0,
+      maxDurability: 800,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 10 }, { itemId: 'iron_hinge', quantity: 1 }],
       craftTime: 5,
@@ -373,6 +381,7 @@ export class BuildingSystem3D extends BaseSystem {
       rotationSteps: 4,
       stability: 0.5,
       maxLoad: 200,
+      maxDurability: 1000,
       requiresSupport: true,
       cost: [{ itemId: 'wood', quantity: 12 }],
       craftTime: 5,
@@ -403,7 +412,7 @@ export class BuildingSystem3D extends BaseSystem {
 
   setPlayerEntity(entityId: EntityId): void {
     this.playerEntity = entityId;
-    this.playerComp = this.world.getComponent(entityId, PlayerComponent);
+    this.playerComp = this.world.getComponent(entityId, PlayerComponent) ?? null;
   }
 
   // ============================================================================
@@ -568,14 +577,14 @@ export class BuildingSystem3D extends BaseSystem {
 
   private getBuildRay(): THREE.Ray {
     const ndc = new THREE.Vector2(0, 0); // Center of screen
-    const ray = new THREE.Ray();
-    ray.setFromCamera(ndc, this.camera);
-    return ray;
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(ndc, this.camera);
+    return raycaster.ray;
   }
 
   private raycastBuild(ray: THREE.Ray): { point: Vec3; normal: Vec3; pieceId?: EntityId } | null {
     // Check against placed pieces first
-    let closestHit: { point: Vec3; normal: Vec3; pieceId: EntityId } | null = null;
+    let closestHit: { point: Vec3; normal: Vec3; pieceId?: EntityId } | null = null;
     let closestDist = Infinity;
 
     for (const [pieceId, piece] of this.placedPieces) {
@@ -621,7 +630,7 @@ export class BuildingSystem3D extends BaseSystem {
       }
     }
 
-    return closestHit;
+    return closestHit ?? null;
   }
 
   private calculateHitNormal(ray: THREE.Ray, point: THREE.Vector3, pieceTransform: TransformComponent): Vec3 {
@@ -783,7 +792,7 @@ export class BuildingSystem3D extends BaseSystem {
   }
 
   private canAfford(def: BuildingPieceDefinition): boolean {
-    if (!this.playerComp) return false;
+    if (!this.playerComp || !this.playerComp.inventory) return false;
 
     for (const cost of def.cost) {
       if (this.playerComp.inventory.getItemCount(cost.itemId) < cost.quantity) {
@@ -799,13 +808,13 @@ export class BuildingSystem3D extends BaseSystem {
 
   placePiece(): boolean {
     if (!this.currentPreview || !this.currentPreview.isValid) return false;
-    if (!this.playerEntity || !this.playerComp) return false;
+    if (!this.playerEntity || !this.playerComp || !this.playerComp.inventory) return false;
 
     const def = this.pieceDefinitions.get(this.currentPreview.definitionId)!;
 
     // Consume resources
     for (const cost of def.cost) {
-      this.playerComp.inventory.removeItem(cost.itemId, cost.quantity);
+      this.playerComp.inventory!.removeItem(cost.itemId, cost.quantity);
     }
 
     // Create entity
@@ -969,7 +978,7 @@ export class BuildingSystem3D extends BaseSystem {
 
     // Remove snap connections
     for (const [snapId, connectedId] of piece.snapConnections) {
-      const connectedPiece = this.placedPieces.get(connectedId);
+      const connectedPiece = this.placedPieces.get(connectedId as EntityId);
       if (connectedPiece) {
         connectedPiece.snapConnections.delete(snapId);
       }

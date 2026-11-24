@@ -3,17 +3,37 @@
  * All gameplay numbers live here for easy balancing
  */
 
+// Import enum values (runtime values) - enums are both types and values
 import {
   BiomeType,
   DamageType,
+  DamageElement,
   WeaponType,
   ItemType,
   EquipmentSlot,
   LocomotionState,
   CreatureState,
   ActionName,
+  GraphicsPreset,
+  TextureQuality,
+  ShadowQuality,
+  ScreenMode,
 } from './Types.js';
 
+// Import types from Types.js (using import type for isolatedModules compatibility)
+import type {
+  WeaponTypeConfig,
+  GraphicsSettings,
+} from './Types.js';
+
+// Re-export types for consumers (using export type for isolatedModules)
+export type {
+  WeaponTypeConfig,
+  GraphicsSettings,
+  DamageElement,
+};
+
+// Re-export enum values (enums are both types and values, export covers both)
 export {
   BiomeType,
   DamageType,
@@ -23,6 +43,10 @@ export {
   LocomotionState,
   CreatureState,
   ActionName,
+  GraphicsPreset,
+  TextureQuality,
+  ShadowQuality,
+  ScreenMode,
 };
 
 // ============================================================================
@@ -249,7 +273,7 @@ export const WEAPON_CONFIG: Record<WeaponType, WeaponTypeConfig> = {
     skills: ['Fireball', 'IceShard', 'LightningChain', 'Heal'],
     hitboxShape: 'sphere',
     hitboxSize: { radius: 2.5 },
-    elementalDamage: DamageType.Fire,
+    elementalDamage: 'fire',
   },
   [WeaponType.Daggers]: {
     type: WeaponType.Daggers,
@@ -294,26 +318,7 @@ export const WEAPON_CONFIG: Record<WeaponType, WeaponTypeConfig> = {
     hitboxSize: { angle: Math.PI / 4, length: 3.2 },
     shellDamage: 45,
   },
-};
-
-export interface WeaponTypeConfig {
-  type: WeaponType;
-  damage: number;
-  attackSpeed: number; // attacks per second
-  range: number;
-  angle: number;
-  staminaCost: number;
-  knockback: number;
-  staggerPower: number;
-  comboCount: number;
-  skills: string[];
-  hitboxShape: 'capsule' | 'box' | 'sphere' | 'ray' | 'cone';
-  hitboxSize: Record<string, number>;
-  projectileSpeed?: number;
-  projectileGravity?: number;
-  elementalDamage?: DamageType;
-  shellDamage?: number;
-}
+} as const;
 
 // ============================================================================
 // SKILL CONFIG
@@ -650,8 +655,6 @@ export const BIOME_CONFIGS: Record<BiomeType, BiomeConfig> = {
 // ============================================================================
 // GRAPHICS PRESETS
 // ============================================================================
-
-import { GraphicsSettings, GraphicsPreset, ShadowQuality, TextureQuality, ScreenMode } from './Types.js';
 
 export const GRAPHICS_PRESETS: Record<GraphicsPreset, Partial<GraphicsSettings>> = {
   [GraphicsPreset.Low]: {

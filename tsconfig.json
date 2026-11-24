@@ -22,6 +22,7 @@
       "@entities/*": ["src/entities/*"],
       "@combat/*": ["src/combat/*"],
       "@building/*": ["src/building/*"],
+      "@creatures/*": ["src/creatures/*"],
       "@ui/*": ["src/ui/*"],
       "@assets/*": ["src/assets/*"]
     }

@@ -3,7 +3,7 @@
  * Defines creature data, sockets, mutations, and AI
  */
 
-import { EntityId, Vec3, Quat, CreatureState, BiomeType } from '@core/Types.js';
+import { EntityId, Vec3, Quat, CreatureState, BiomeType, DamageElement } from '@core/Types.js';
 
 // ============================================================================
 // CREATURE DEFINITIONS
@@ -120,8 +120,6 @@ export interface AttackEffect {
   duration: number;
   power: number;
 }
-
-export type DamageElement = 'physical' | 'fire' | 'ice' | 'lightning' | 'poison' | 'spirit';
 
 // ============================================================================
 // MUTATION SYSTEM
@@ -245,10 +243,10 @@ export class CreatureComponent {
   definitionId: string;
   instance: CreatureInstance;
 
-  constructor(entityId: EntityId, definitionId: string, instance: CreatureInstance) {
+  constructor(entityId: EntityId, ...args: unknown[]) {
     this.entityId = entityId;
-    this.definitionId = definitionId;
-    this.instance = instance;
+    this.definitionId = args[0] as string;
+    this.instance = args[1] as CreatureInstance;
   }
 }
 
@@ -281,7 +279,7 @@ export class CreatureAIComponent {
   alignmentWeight: number;
   cohesionWeight: number;
 
-  constructor(entityId: EntityId) {
+  constructor(entityId: EntityId, ...args: unknown[]) {
     this.entityId = entityId;
     this.currentBehavior = 'idle';
     this.behaviorTimer = 0;
@@ -290,6 +288,7 @@ export class CreatureAIComponent {
     this.path = [];
     this.pathIndex = 0;
     this.stuckTimer = 0;
+    this.lastPosition = { x: 0, y: 0, z: 0 };
     this.herdMembers = [];
     this.separationRadius = 3;
     this.alignmentWeight = 0.5;
@@ -318,7 +317,7 @@ export class MutationComponent {
   cachedAttackPatterns: string[] = [];
   cacheDirty = true;
 
-  constructor(entityId: EntityId) {
+  constructor(entityId: EntityId, ...args: unknown[]) {
     this.entityId = entityId;
   }
 }
