@@ -249,6 +249,13 @@ export interface AssetManifestEntry {
   upAxisFix: 'Y_UP' | 'Z_UP' | 'AUTO';
   materialMapping: Record<string, string>;
   lods?: string[];
+  rigMapping?: Record<string, string>; // socketId -> boneName
+  socketBinding?: {
+    socketId: string;
+    offset: { x: number; y: number; z: number };
+    rotation: { x: number; y: number; z: number; w: number };
+    scale: { x: number; y: number; z: number };
+  };
 }
 
 export enum AssetRole {

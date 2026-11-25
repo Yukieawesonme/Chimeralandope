@@ -1,0 +1,531 @@
+{
+  "version": "1.0.0",
+  "description": "Asset Manifest for ChimeraLand - Maps public library assets to game roles with normalization metadata",
+  "libraries": {
+    "Sketchfab": {
+      "baseUrl": "https://api.sketchfab.com/v3/models",
+      "licenseFilter": ["CC-BY", "CC-BY-SA", "CC0", "GPL", "Standard"],
+      "format": "glb",
+      "notes": "Requires API key for download. Use manual download for now, place in assets/models/sketchfab/"
+    },
+    "PolyHaven": {
+      "baseUrl": "https://api.polyhaven.com",
+      "licenseFilter": ["CC0"],
+      "format": "glb",
+      "downloadPattern": "https://dl.polyhaven.org/file/ph-assets/Models/{id}/glb/{id}.glb",
+      "texturePattern": "https://dl.polyhaven.org/file/ph-assets/Textures/{id}/{res}/{id}_{map}_{res}.{ext}",
+      "notes": "Fully open CC0. Excellent for PBR terrain materials and environment props."
+    },
+    "ambientCG": {
+      "baseUrl": "https://ambientcg.com/api/v2",
+      "licenseFilter": ["CC0"],
+      "format": "glb",
+      "downloadPattern": "https://cdn.ambientcg.com/resources/{id}/{id}_{res}_{map}.{ext}",
+      "notes": "Best for PBR texture sets (Albedo, Normal, Roughness, Metalness, AO, Height). No models, only materials."
+    },
+    "Quaternius": {
+      "baseUrl": "https://quaternius.com",
+      "licenseFilter": ["CC0", "CC-BY"],
+      "format": "glb",
+      "downloadPattern": "https://github.com/Quaternius/3D-Models/raw/main/{category}/{model}/{model}.glb",
+      "notes": "Excellent low-poly creatures, characters, modular props. Ready for games."
+    },
+    "Kenney": {
+      "baseUrl": "https://kenney.nl/assets",
+      "licenseFilter": ["CC0"],
+      "format": "glb",
+      "notes": "Prototyping assets. Good for building pieces, simple props, UI elements."
+    },
+    "OpenGameArt": {
+      "baseUrl": "https://opengameart.org",
+      "licenseFilter": ["CC0", "CC-BY", "CC-BY-SA", "GPL"],
+      "format": ["glb", "fbx", "obj"],
+      "notes": "Community submissions. Quality varies. Check licenses individually."
+    }
+  },
+  "assets": [
+    {
+      "id": "terrain_grass_dirt",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/grass_field_01/glb/grass_field_01.glb",
+      "localPath": "assets/models/biomes/grass_dirt.glb",
+      "targetRole": "BiomeTerrain",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Grass_Material": "grass_blend",
+        "Dirt_Material": "dirt_blend"
+      },
+      "lods": [
+        "assets/models/biomes/grass_dirt_lod1.glb",
+        "assets/models/biomes/grass_dirt_lod2.glb"
+      ]
+    },
+    {
+      "id": "terrain_rock_moss",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/rocky_ground_01/glb/rocky_ground_01.glb",
+      "localPath": "assets/models/biomes/rock_moss.glb",
+      "targetRole": "BiomeTerrain",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Rock_Material": "rock_blend",
+        "Moss_Material": "moss_blend"
+      }
+    },
+    {
+      "id": "terrain_ash_basalt",
+      "sourceLibrary": "ambientCG",
+      "license": "CC0",
+      "downloadUrl": "",
+      "localPath": "assets/materials/ash_basalt/",
+      "targetRole": "BiomeTerrain",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Albedo": "assets/materials/ash_basalt/ash_basalt_2k_albedo.jpg",
+        "Normal": "assets/materials/ash_basalt/ash_basalt_2k_normal.jpg",
+        "Roughness": "assets/materials/ash_basalt/ash_basalt_2k_roughness.jpg",
+        "Metalness": "assets/materials/ash_basalt/ash_basalt_2k_metalness.jpg",
+        "AO": "assets/materials/ash_basalt/ash_basalt_2k_ao.jpg",
+        "Height": "assets/materials/ash_basalt/ash_basalt_2k_height.jpg"
+      }
+    },
+    {
+      "id": "terrain_mud_root",
+      "sourceLibrary": "ambientCG",
+      "license": "CC0",
+      "downloadUrl": "",
+      "localPath": "assets/materials/mud_root/",
+      "targetRole": "BiomeTerrain",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Albedo": "assets/materials/mud_root/mud_root_2k_albedo.jpg",
+        "Normal": "assets/materials/mud_root/mud_root_2k_normal.jpg",
+        "Roughness": "assets/materials/mud_root/mud_root_2k_roughness.jpg",
+        "Metalness": "assets/materials/mud_root/mud_root_2k_metalness.jpg",
+        "AO": "assets/materials/mud_root/mud_root_2k_ao.jpg",
+        "Height": "assets/materials/mud_root/mud_root_2k_height.jpg"
+      }
+    },
+    {
+      "id": "terrain_sand_coral",
+      "sourceLibrary": "ambientCG",
+      "license": "CC0",
+      "downloadUrl": "",
+      "localPath": "assets/materials/sand_coral/",
+      "targetRole": "BiomeTerrain",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Albedo": "assets/materials/sand_coral/sand_coral_2k_albedo.jpg",
+        "Normal": "assets/materials/sand_coral/sand_coral_2k_normal.jpg",
+        "Roughness": "assets/materials/sand_coral/sand_coral_2k_roughness.jpg",
+        "Metalness": "assets/materials/sand_coral/sand_coral_2k_metalness.jpg",
+        "AO": "assets/materials/sand_coral/sand_coral_2k_ao.jpg",
+        "Height": "assets/materials/sand_coral/sand_coral_2k_height.jpg"
+      }
+    },
+    {
+      "id": "creature_spirit_wolf",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Creatures/Wolf/Wolf.glb",
+      "localPath": "assets/models/creatures/spirit_wolf.glb",
+      "targetRole": "CreatureBase",
+      "scaleFactor": 0.8,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wolf_Body": "wolf_fur",
+        "Wolf_Eyes": "wolf_eyes_glow"
+      },
+      "rigMapping": {
+        "Head": "Head",
+        "Spine": "Spine",
+        "Tail": "Tail",
+        "FrontLeftLeg": "FrontLeftLeg",
+        "FrontRightLeg": "FrontRightLeg",
+        "BackLeftLeg": "BackLeftLeg",
+        "BackRightLeg": "BackRightLeg"
+      },
+      "animationClips": ["Idle", "Walk", "Run", "Attack", "Hit", "Death", "Howl"]
+    },
+    {
+      "id": "creature_sky_eagle",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Creatures/Eagle/Eagle.glb",
+      "localPath": "assets/models/creatures/sky_eagle.glb",
+      "targetRole": "CreatureBase",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Eagle_Body": "eagle_feathers",
+        "Eagle_Eyes": "eagle_eyes"
+      },
+      "rigMapping": {
+        "Head": "Head",
+        "Spine": "Spine",
+        "Tail": "Tail",
+        "LeftWing": "LeftWing",
+        "RightWing": "RightWing",
+        "LeftLeg": "LeftLeg",
+        "RightLeg": "RightLeg"
+      },
+      "animationClips": ["Idle", "Fly", "Glide", "Attack", "Hit", "Death", "Land", "Takeoff"]
+    },
+    {
+      "id": "creature_abyssal_scorpion",
+      "sourceLibrary": "Sketchfab",
+      "license": "CC-BY",
+      "downloadUrl": "",
+      "localPath": "assets/models/creatures/abyssal_scorpion.glb",
+      "targetRole": "CreatureBase",
+      "scaleFactor": 1.2,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Scorpion_Body": "scorpion_carapace",
+        "Scorpion_Stinger": "scorpion_stinger_glow",
+        "Scorpion_Eyes": "scorpion_eyes"
+      },
+      "rigMapping": {
+        "Body": "Body",
+        "Tail_Base": "Tail_Base",
+        "Tail_Mid": "Tail_Mid",
+        "Stinger": "Stinger",
+        "Left_Claw": "Left_Claw",
+        "Right_Claw": "Right_Claw",
+        "Left_Legs": "Left_Legs",
+        "Right_Legs": "Right_Legs"
+      },
+      "animationClips": ["Idle", "Walk", "Attack_Claw", "Attack_Stinger", "Hit", "Death", "Burrow"]
+    },
+    {
+      "id": "part_eagle_wings",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Creatures/Eagle/Eagle_Wings.glb",
+      "localPath": "assets/models/chimera_parts/eagle_wings.glb",
+      "targetRole": "CreaturePart",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wing_Membrane": "eagle_wing_membrane",
+        "Wing_Feathers": "eagle_feathers"
+      },
+      "socketBinding": {
+        "socketId": "back",
+        "offset": { "x": 0, "y": 0.5, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      }
+    },
+    {
+      "id": "part_scorpion_tail",
+      "sourceLibrary": "Sketchfab",
+      "license": "CC-BY",
+      "downloadUrl": "",
+      "localPath": "assets/models/chimera_parts/scorpion_tail.glb",
+      "targetRole": "CreaturePart",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Tail_Segment": "scorpion_carapace",
+        "Stinger_Tip": "scorpion_stinger_glow"
+      },
+      "socketBinding": {
+        "socketId": "tail_socket",
+        "offset": { "x": 0, "y": 0, "z": 0.8 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      }
+    },
+    {
+      "id": "part_dragon_wings",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/dragon_wings_01/glb/dragon_wings_01.glb",
+      "localPath": "assets/models/chimera_parts/dragon_wings.glb",
+      "targetRole": "CreaturePart",
+      "scaleFactor": 1.5,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wing_Membrane": "dragon_wing_membrane",
+        "Wing_Bones": "dragon_bones"
+      },
+      "socketBinding": {
+        "socketId": "back",
+        "offset": { "x": 0, "y": 0.8, "z": -0.5 },
+        "rotation": { "x": -0.2, "y": 0, "z": 0, "w": 0.98 },
+        "scale": { "x": 1.2, "y": 1.2, "z": 1.2 }
+      }
+    },
+    {
+      "id": "part_alpha_horns",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/creature-parts",
+      "localPath": "assets/models/chimera_parts/alpha_horns.glb",
+      "targetRole": "CreaturePart",
+      "scaleFactor": 0.8,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Horn": "horn_ivory"
+      },
+      "socketBinding": {
+        "socketId": "head_horns",
+        "offset": { "x": 0, "y": 0.3, "z": 0.2 },
+        "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      }
+    },
+    {
+      "id": "weapon_sword_spiritual",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Weapons/Sword/Sword.glb",
+      "localPath": "assets/models/weapons/sword_spiritual.glb",
+      "targetRole": "Weapon",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Blade": "spirit_blade",
+        "Hilt": "spirit_hilt",
+        "Guard": "spirit_guard"
+      }
+    },
+    {
+      "id": "weapon_hammer_colossal",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Weapons/Hammer/Hammer.glb",
+      "localPath": "assets/models/weapons/hammer_colossal.glb",
+      "targetRole": "Weapon",
+      "scaleFactor": 1.5,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Head": "hammer_head_rune",
+        "Handle": "hammer_handle_wood"
+      }
+    },
+    {
+      "id": "weapon_bow_long",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Weapons/Bow/Bow.glb",
+      "localPath": "assets/models/weapons/bow_long.glb",
+      "targetRole": "Weapon",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Bow": "bow_wood_rune",
+        "String": "bow_string_energy"
+      }
+    },
+    {
+      "id": "weapon_staff_elemental",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Weapons/Staff/Staff.glb",
+      "localPath": "assets/models/weapons/staff_elemental.glb",
+      "targetRole": "Weapon",
+      "scaleFactor": 1.2,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Staff": "staff_wood_crystal",
+        "Orb": "staff_orb_elemental"
+      }
+    },
+    {
+      "id": "weapon_daggers_twin",
+      "sourceLibrary": "Quaternius",
+      "license": "CC0",
+      "downloadUrl": "https://github.com/Quaternius/3D-Models/raw/main/Weapons/Dagger/Dagger.glb",
+      "localPath": "assets/models/weapons/daggers_twin.glb",
+      "targetRole": "Weapon",
+      "scaleFactor": 0.8,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Blade": "dagger_blade_venom",
+        "Handle": "dagger_handle_leather"
+      }
+    },
+    {
+      "id": "building_foundation_square",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/foundation_square.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Foundation": "building_stone_foundation"
+      }
+    },
+    {
+      "id": "building_wall_simple",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/wall_simple.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wall": "building_stone_wall"
+      }
+    },
+    {
+      "id": "building_wall_window",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/wall_window.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wall": "building_stone_wall",
+        "Window": "building_window_glass"
+      }
+    },
+    {
+      "id": "building_wall_door",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/wall_door.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Wall": "building_stone_wall",
+        "Door": "building_door_wood",
+        "Frame": "building_door_frame"
+      }
+    },
+    {
+      "id": "building_stairs",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/stairs.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Stairs": "building_stone_stairs"
+      }
+    },
+    {
+      "id": "building_roof_tile",
+      "sourceLibrary": "Kenney",
+      "license": "CC0",
+      "downloadUrl": "https://kenney.nl/assets/town-pack",
+      "localPath": "assets/models/building/roof_tile.glb",
+      "targetRole": "BuildingPiece",
+      "scaleFactor": 2.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Roof": "building_roof_tiles"
+      }
+    },
+    {
+      "id": "foliage_grass_patch",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/grass_patch_01/glb/grass_patch_01.glb",
+      "localPath": "assets/models/foliage/grass_patch.glb",
+      "targetRole": "BiomeFoliage",
+      "scaleFactor": 0.5,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Grass": "grass_blades"
+      }
+    },
+    {
+      "id": "foliage_fern",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/fern_01/glb/fern_01.glb",
+      "localPath": "assets/models/foliage/fern.glb",
+      "targetRole": "BiomeFoliage",
+      "scaleFactor": 0.8,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Fern": "fern_leaves"
+      }
+    },
+    {
+      "id": "foliage_tree_spirit",
+      "sourceLibrary": "Sketchfab",
+      "license": "CC-BY",
+      "downloadUrl": "",
+      "localPath": "assets/models/foliage/tree_spirit.glb",
+      "targetRole": "BiomeFoliage",
+      "scaleFactor": 3.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Trunk": "tree_bark_spirit",
+        "Leaves": "tree_leaves_glow"
+      }
+    },
+    {
+      "id": "foliage_crystal_formation",
+      "sourceLibrary": "ambientCG",
+      "license": "CC0",
+      "downloadUrl": "",
+      "localPath": "assets/materials/crystal_formation/",
+      "targetRole": "BiomeFoliage",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {
+        "Albedo": "assets/materials/crystal_formation/crystal_2k_albedo.jpg",
+        "Normal": "assets/materials/crystal_formation/crystal_2k_normal.jpg",
+        "Roughness": "assets/materials/crystal_formation/crystal_2k_roughness.jpg",
+        "Metalness": "assets/materials/crystal_formation/crystal_2k_metalness.jpg",
+        "AO": "assets/materials/crystal_formation/crystal_2k_ao.jpg",
+        "Height": "assets/materials/crystal_formation/crystal_2k_height.jpg",
+        "Emissive": "assets/materials/crystal_formation/crystal_2k_emissive.jpg"
+      }
+    },
+    {
+      "id": "skybox_plains",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/HDRIs/equirectangular/1k/kloppenheim_02_1k.hdr",
+      "localPath": "assets/skyboxes/skybox_plains.hdr",
+      "targetRole": "Prop",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {}
+    },
+    {
+      "id": "skybox_mountains",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/HDRIs/equirectangular/1k/meadow_01_1k.hdr",
+      "localPath": "assets/skyboxes/skybox_mountains.hdr",
+      "targetRole": "Prop",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {}
+    },
+    {
+      "id": "skybox_desert",
+      "sourceLibrary": "PolyHaven",
+      "license": "CC0",
+      "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/HDRIs/equirectangular/1k/desert_01_1k.hdr",
+      "localPath": "assets/skyboxes/skybox_desert.hdr",
+      "targetRole": "Prop",
+      "scaleFactor": 1.0,
+      "upAxisFix": "Y_UP",
+      "materialMapping": {}
+    }
+  ]
+}

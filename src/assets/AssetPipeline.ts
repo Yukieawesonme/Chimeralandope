@@ -1,842 +1,816 @@
 /**
- * Asset Pipeline - Automated Download & Import from Public 3D Libraries
- * Integrates with Poly Haven, Kenney, Quaternius, Sketchfab, OpenGameArt, ambientCG
+ * Asset Adaptation Pipeline - Automated import, normalization, and integration of public library assets
+ * Handles download, scale/axis correction, LOD generation, material adaptation, and socket rigging
  */
 
-import { AssetManifestEntry, AssetRole, PBRMaterialData, BiomeType } from '@core/Types.js';
+import * as THREE from 'three';
+import { AssetLoader, LoadedGLTF } from '@engine/AssetLoader.js';
+import { AssetManifestEntry, AssetRole, PBRMaterialData } from '@core/Types.js';
 
-// ============================================================================
-// LIBRARY CATALOGS
-// ============================================================================
-
-export interface LibraryCatalog {
+export interface PipelineStage {
   name: string;
-  baseUrl: string;
-  apiUrl?: string;
-  license: string;
-  attributionRequired: boolean;
-  categories: string[];
-  searchEndpoint?: string;
-  downloadEndpoint?: string;
-  rateLimit: { requests: number; windowMs: number };
+  process: (entry: AssetManifestEntry, asset: LoadedGLTF) => Promise<LoadedGLTF>;
 }
 
-export const PUBLIC_LIBRARIES: Record<string, LibraryCatalog> = {
-  polyhaven: {
-    name: 'Poly Haven',
-    baseUrl: 'https://api.polyhaven.com',
-    license: 'CC0',
-    attributionRequired: false,
-    categories: ['hdris', 'textures', 'models'],
-    searchEndpoint: '/assets',
-    downloadEndpoint: '/files',
-    rateLimit: { requests: 60, windowMs: 60000 },
-  },
-  ambientcg: {
-    name: 'ambientCG',
-    baseUrl: 'https://ambientcg.com/api/v2',
-    license: 'CC0',
-    attributionRequired: false,
-    categories: ['materials', 'hdris', 'models'],
-    searchEndpoint: '/materials',
-    downloadEndpoint: '/download',
-    rateLimit: { requests: 30, windowMs: 60000 },
-  },
-  kenney: {
-    name: 'Kenney.nl',
-    baseUrl: 'https://kenney.nl/assets',
-    license: 'CC0',
-    attributionRequired: false,
-    categories: ['models', 'textures', 'audio', 'ui'],
-    rateLimit: { requests: 10, windowMs: 60000 },
-  },
-  quaternius: {
-    name: 'Quaternius',
-    baseUrl: 'https://quaternius.com',
-    license: 'CC0',
-    attributionRequired: true,
-    categories: ['models', 'characters', 'environments'],
-    rateLimit: { requests: 10, windowMs: 60000 },
-  },
-  sketchfab: {
-    name: 'Sketchfab',
-    baseUrl: 'https://api.sketchfab.com/v3',
-    license: 'Mixed (check per model)',
-    attributionRequired: true,
-    categories: ['models'],
-    searchEndpoint: '/search',
-    downloadEndpoint: '/models/{uid}/download',
-    rateLimit: { requests: 100, windowMs: 60000 },
-  },
-  opengameart: {
-    name: 'OpenGameArt.org',
-    baseUrl: 'https://opengameart.org',
-    license: 'Mixed (GPL, CC-BY, CC0, etc.)',
-    attributionRequired: true,
-    categories: ['models', 'textures', 'audio', 'sprites'],
-    rateLimit: { requests: 5, windowMs: 60000 },
-  },
-  sharetextures: {
-    name: 'ShareTextures',
-    baseUrl: 'https://sharetextures.com',
-    license: 'CC0',
-    attributionRequired: false,
-    categories: ['textures'],
-    rateLimit: { requests: 30, windowMs: 60000 },
-  },
-};
-
-// ============================================================================
-// ASSET MANIFEST
-// ============================================================================
-
-export interface AssetManifest {
-  version: string;
-  lastUpdated: number;
-  assets: AssetManifestEntry[];
-  libraries: Record<string, { lastSync: number; version: string }>;
-}
-
-export interface DownloadTask {
-  id: string;
+export interface PipelineResult {
   entry: AssetManifestEntry;
-  status: 'pending' | 'downloading' | 'processing' | 'completed' | 'failed';
-  progress: number;
+  success: boolean;
+  asset?: LoadedGLTF;
   error?: string;
-  localPath?: string;
-  startTime: number;
-  endTime?: number;
+  warnings: string[];
 }
 
-// ============================================================================
-// ASSET PIPELINE
-// ============================================================================
+export class AssetAdaptationPipeline {
+  private assetLoader: AssetLoader;
+  private manifest: AssetManifestEntry[] = [];
+  private stages: PipelineStage[] = [];
+  private results: Map<string, PipelineResult> = new Map();
 
-export class AssetPipeline {
-  private manifest: AssetManifest;
-  private downloadQueue: DownloadTask[] = [];
-  private activeDownloads = 0;
-  private maxConcurrentDownloads = 3;
-  private cacheDir = '/assets/cache/';
-  private onProgressCallback?: (task: DownloadTask) => void;
-  private onCompleteCallback?: (task: DownloadTask) => void;
-  private onErrorCallback?: (task: DownloadTask, error: Error) => void;
-
-  constructor() {
-    this.manifest = this.loadManifest();
+  constructor(assetLoader: AssetLoader) {
+    this.assetLoader = assetLoader;
+    this.initializeStages();
   }
 
-  private loadManifest(): AssetManifest {
-    try {
-      const stored = localStorage.getItem('chimeraland_asset_manifest');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch {}
+  private initializeStages(): void {
+    this.stages = [
+      { name: 'Load & Validate', process: this.stageLoadAndValidate.bind(this) },
+      { name: 'Normalize Scale', process: this.stageNormalizeScale.bind(this) },
+      { name: 'Fix Up Axis', process: this.stageFixUpAxis.bind(this) },
+      { name: 'Center Geometry', process: this.stageCenterGeometry.bind(this) },
+      { name: 'Setup PBR Materials', process: this.stageSetupPBRMaterials.bind(this) },
+      { name: 'Apply Material Mapping', process: this.stageApplyMaterialMapping.bind(this) },
+      { name: 'Generate LODs', process: this.stageGenerateLODs.bind(this) },
+      { name: 'Generate Colliders', process: this.stageGenerateColliders.bind(this) },
+      { name: 'Setup Animation Clips', process: this.stageSetupAnimations.bind(this) },
+      { name: 'Setup Socket Rigging', process: this.stageSetupSocketRigging.bind(this) },
+      { name: 'Optimize for Runtime', process: this.stageOptimizeForRuntime.bind(this) },
+    ];
+  }
 
-    return {
-      version: '1.0',
-      lastUpdated: Date.now(),
-      assets: [],
-      libraries: {},
+  async loadManifest(manifestPath: string): Promise<void> {
+    const response = await fetch(manifestPath);
+    const data = await response.json();
+    this.manifest = data.assets || [];
+    console.log(`[AssetPipeline] Loaded manifest with ${this.manifest.length} assets`);
+  }
+
+  async processAll(onProgress?: (progress: { stage: string; entry: string; completed: number; total: number }) => void): Promise<Map<string, PipelineResult>> {
+    this.results.clear();
+
+    for (let i = 0; i < this.manifest.length; i++) {
+      const entry = this.manifest[i]!;
+      const result = await this.processEntry(entry);
+      this.results.set(entry.id, result);
+
+      onProgress?.({
+        stage: 'Complete',
+        entry: entry.id,
+        completed: i + 1,
+        total: this.manifest.length,
+      });
+    }
+
+    return this.results;
+  }
+
+  async processEntry(entry: AssetManifestEntry): Promise<PipelineResult> {
+    const result: PipelineResult = {
+      entry,
+      success: false,
+      warnings: [],
     };
+
+    try {
+      // Load the asset
+      let asset = await this.assetLoader.loadGLTFFromManifest(entry, {
+        normalizeScale: false,
+        centerGeometry: false,
+      });
+
+      // Run through all pipeline stages
+      for (const stage of this.stages) {
+        try {
+          asset = await stage.process(entry, asset);
+        } catch (stageError) {
+          const msg = `${stage.name} failed: ${stageError}`;
+          console.warn(`[AssetPipeline] ${entry.id}: ${msg}`);
+          result.warnings.push(msg);
+        }
+      }
+
+      result.success = true;
+      result.asset = asset;
+      console.log(`[AssetPipeline] ✓ Processed: ${entry.id}`);
+    } catch (error) {
+      result.error = String(error);
+      console.error(`[AssetPipeline] ✗ Failed: ${entry.id} - ${error}`);
+    }
+
+    return result;
   }
 
-  private saveManifest(): void {
-    this.manifest.lastUpdated = Date.now();
-    localStorage.setItem('chimeraland_asset_manifest', JSON.stringify(this.manifest));
+  // ============================================================================
+  // PIPELINE STAGES
+  // ============================================================================
+
+  private async stageLoadAndValidate(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    // Validate basic structure
+    if (!asset.scene) throw new Error('No scene in GLTF');
+    if (!asset.animations) asset.animations = [];
+
+    // Check for required bones based on target role
+    if (entry.targetRole === AssetRole.CreatureBase || entry.targetRole === AssetRole.CreaturePart) {
+      this.validateRig(entry, asset);
+    }
+
+    return asset;
+  }
+
+  private validateRig(entry: AssetManifestEntry, asset: LoadedGLTF): void {
+    const requiredBones = this.getRequiredBonesForRole(entry.targetRole);
+    const foundBones = new Set<string>();
+
+    asset.scene.traverse((obj) => {
+      // Check for bone or skinned mesh
+      if ((obj as any).isBone || obj instanceof THREE.SkinnedMesh) {
+        foundBones.add(obj.name);
+      }
+    });
+
+    for (const bone of requiredBones) {
+      if (!foundBones.has(bone)) {
+        console.warn(`[AssetPipeline] ${entry.id}: Missing expected bone "${bone}"`);
+      }
+    }
+  }
+
+  private getRequiredBonesForRole(role: AssetRole): string[] {
+    switch (role) {
+      case AssetRole.CreatureBase:
+        return ['Head', 'Spine', 'Tail', 'FrontLeftLeg', 'FrontRightLeg', 'BackLeftLeg', 'BackRightLeg'];
+      case AssetRole.CreaturePart:
+        return [];
+      default:
+        return [];
+    }
+  }
+
+  private async stageNormalizeScale(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    // Normalize to 1 unit = 1 meter, max dimension = 1
+    const box = new THREE.Box3().setFromObject(asset.scene);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+
+    if (maxDim > 0) {
+      const scale = (1 / maxDim) * entry.scaleFactor;
+      asset.scene.scale.setScalar(scale);
+    }
+
+    // Update bounding boxes
+    asset.scene.updateWorldMatrix(true, false);
+
+    return asset;
+  }
+
+  private async stageFixUpAxis(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    if (entry.upAxisFix === 'Z_UP') {
+      // Rotate -90 degrees around X to convert Z-up to Y-up
+      asset.scene.rotateX(-Math.PI / 2);
+      asset.scene.updateWorldMatrix(true, false);
+    }
+    return asset;
+  }
+
+  private async stageCenterGeometry(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    const box = new THREE.Box3().setFromObject(asset.scene);
+    const center = box.getCenter(new THREE.Vector3());
+
+    // For creatures, center at feet (bottom of bounding box)
+    if (entry.targetRole === AssetRole.CreatureBase || entry.targetRole === AssetRole.CreaturePart) {
+      center.y = box.min.y;
+    }
+
+    asset.scene.position.sub(center);
+    asset.scene.updateWorldMatrix(true, false);
+
+    return asset;
+  }
+
+  private async stageSetupPBRMaterials(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    asset.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+        for (let i = 0; i < materials.length; i++) {
+          const material = materials[i];
+
+          if (material instanceof THREE.MeshStandardMaterial) {
+            // Already PBR, ensure proper setup
+            material.side = THREE.FrontSide;
+            if ('colorSpace' in material) {
+              (material as any).colorSpace = THREE.SRGBColorSpace;
+            }
+          } else if (material instanceof THREE.MeshBasicMaterial || material instanceof THREE.MeshPhongMaterial) {
+            // Upgrade to MeshStandardMaterial
+            const newMat = new THREE.MeshStandardMaterial();
+            newMat.color.copy(material.color);
+            newMat.map = material.map;
+            if (material instanceof THREE.MeshPhongMaterial) {
+              newMat.normalMap = material.normalMap;
+            }
+            newMat.roughness = 0.7;
+            newMat.metalness = 0.1;
+            newMat.side = THREE.FrontSide;
+
+            materials[i] = newMat;
+            material.dispose();
+          }
+        }
+
+        if (materials.length === 1) {
+          child.material = materials[0];
+        } else {
+          child.material = materials;
+        }
+      }
+    });
+
+    return asset;
+  }
+
+  private async stageApplyMaterialMapping(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    if (!entry.materialMapping || Object.keys(entry.materialMapping).length === 0) {
+      return asset;
+    }
+
+    asset.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+        for (const material of materials) {
+          if (entry.materialMapping[material.name] || entry.materialMapping[child.name]) {
+            const targetMaterialId = entry.materialMapping[material.name] || entry.materialMapping[child.name];
+            console.log(`[AssetPipeline] ${entry.id}: Material "${material.name}" -> "${targetMaterialId}"`);
+            material.userData.targetMaterialId = targetMaterialId;
+          }
+        }
+      }
+    });
+
+    return asset;
+  }
+
+  private async stageGenerateLODs(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    // Only generate LODs for high-poly assets
+    const shouldGenerateLODs = entry.targetRole === AssetRole.CreatureBase ||
+                               entry.targetRole === AssetRole.BuildingPiece ||
+                               entry.targetRole === AssetRole.Prop;
+
+    if (!shouldGenerateLODs) return asset;
+
+    // Check triangle count
+    let triCount = 0;
+    asset.scene.traverse((obj) => {
+      if (obj instanceof THREE.Mesh && obj.geometry) {
+        triCount += obj.geometry.index ? obj.geometry.index.count / 3 : obj.geometry.attributes.position.count / 3;
+      }
+    });
+
+    if (triCount < 5000) return asset;
+
+    // Mark for LOD generation
+    asset.userData = asset.userData || {};
+    asset.userData.lodInfo = {
+      originalTris: triCount,
+      lod1Target: Math.floor(triCount * 0.5),
+      lod2Target: Math.floor(triCount * 0.25),
+      shouldGenerate: true,
+    };
+
+    return asset;
+  }
+
+  private async stageGenerateColliders(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    asset.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const geometry = child.geometry;
+        if (!geometry) return;
+
+        const box = new THREE.Box3().setFromObject(child);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        child.userData.collider = {
+          type: this.chooseColliderType(size),
+          size: { x: size.x, y: size.y, z: size.z },
+          center: { x: center.x, y: center.y, z: center.z },
+          isTrigger: false,
+        };
+      }
+    });
+
+    return asset;
+  }
+
+  private chooseColliderType(size: THREE.Vector3): string {
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const minDim = Math.min(size.x, size.y, size.z);
+    const ratio = maxDim / minDim;
+
+    if (ratio > 5) return 'capsule';
+    if (ratio > 2) return 'box';
+    return 'sphere';
+  }
+
+  private async stageSetupAnimations(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    // Map animation clips to standard names
+    const standardAnimations: Record<string, string[]> = {
+      CreatureBase: ['Idle', 'Walk', 'Run', 'Attack', 'Hit', 'Death'],
+      CreaturePart: [],
+      Weapon: ['Swing', 'Thrust', 'Charge', 'Reload'],
+    };
+
+    const expected = standardAnimations[entry.targetRole] || [];
+    const foundAnimations = new Set(asset.animations.map(a => a.name));
+
+    for (const expectedAnim of expected) {
+      if (!foundAnimations.has(expectedAnim)) {
+        const similar = asset.animations.find(a =>
+          a.name.toLowerCase().includes(expectedAnim.toLowerCase())
+        );
+        if (similar) {
+          similar.name = expectedAnim;
+        } else {
+          console.warn(`[AssetPipeline] ${entry.id}: Missing animation "${expectedAnim}"`);
+        }
+      }
+    }
+
+    for (const anim of asset.animations) {
+      if (anim.duration <= 0) {
+        console.warn(`[AssetPipeline] ${entry.id}: Animation "${anim.name}" has invalid duration`);
+      }
+    }
+
+    return asset;
+  }
+
+  private async stageSetupSocketRigging(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    if (entry.targetRole !== AssetRole.CreatureBase && entry.targetRole !== AssetRole.CreaturePart) {
+      return asset;
+    }
+
+    const sockets: Record<string, THREE.Object3D> = {};
+
+    if (entry.rigMapping) {
+      asset.scene.traverse((obj) => {
+        for (const [socketId, boneName] of Object.entries(entry.rigMapping || {})) {
+          if (obj.name === boneName && ((obj as any).isBone || obj instanceof THREE.SkinnedMesh)) {
+            const socket = new THREE.Object3D();
+            socket.name = `Socket_${socketId}`;
+            obj.add(socket);
+            sockets[socketId] = socket;
+          }
+        }
+      });
+    }
+
+    if (entry.socketBinding) {
+      const binding = entry.socketBinding;
+      const socket = new THREE.Object3D();
+      socket.name = `Socket_${binding.socketId}`;
+      socket.position.set(binding.offset.x, binding.offset.y, binding.offset.z);
+      socket.quaternion.set(binding.rotation.x, binding.rotation.y, binding.rotation.z, binding.rotation.w);
+      socket.scale.set(binding.scale.x, binding.scale.y, binding.scale.z);
+      asset.scene.add(socket);
+      sockets[binding.socketId] = socket;
+    }
+
+    asset.userData = asset.userData || {};
+    asset.userData.sockets = sockets;
+
+    return asset;
+  }
+
+  private async stageOptimizeForRuntime(entry: AssetManifestEntry, asset: LoadedGLTF): Promise<LoadedGLTF> {
+    asset.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // Ensure geometry is buffered
+        if (!child.geometry.isBufferGeometry) {
+          // BufferGeometry doesn't have fromGeometry in newer Three.js
+          // Just ensure it's a BufferGeometry
+        }
+
+        child.geometry.computeBoundingBox();
+        child.geometry.computeBoundingSphere();
+      }
+    });
+
+    asset.scene.updateWorldMatrix(true, false);
+
+    return asset;
   }
 
   // ============================================================================
   // PUBLIC API
   // ============================================================================
 
-  setProgressCallback(callback: (task: DownloadTask) => void): void {
-    this.onProgressCallback = callback;
+  getResult(entryId: string): PipelineResult | undefined {
+    return this.results.get(entryId);
   }
 
-  setCompleteCallback(callback: (task: DownloadTask) => void): void {
-    this.onCompleteCallback = callback;
+  getAllResults(): Map<string, PipelineResult> {
+    return this.results;
   }
 
-  setErrorCallback(callback: (task: DownloadTask, error: Error) => void): void {
-    this.onErrorCallback = callback;
-  }
-
-  getManifest(): AssetManifest {
-    return { ...this.manifest };
-  }
-
-  getAsset(entryId: string): AssetManifestEntry | undefined {
-    return this.manifest.assets.find(a => a.id === entryId);
-  }
-
-  getAssetsByRole(role: AssetRole): AssetManifestEntry[] {
-    return this.manifest.assets.filter(a => a.targetRole === role);
-  }
-
-  getAssetsByBiome(biome: BiomeType): AssetManifestEntry[] {
-    return this.manifest.assets.filter(a => a.targetRole === AssetRole.BiomeTerrain || a.targetRole === AssetRole.BiomeFoliage);
-  }
-
-  // ============================================================================
-  // LIBRARY SYNC
-  // ============================================================================
-
-  async syncLibrary(libraryId: string): Promise<void> {
-    const library = PUBLIC_LIBRARIES[libraryId];
-    if (!library) throw new Error(`Unknown library: ${libraryId}`);
-
-    console.log(`[AssetPipeline] Syncing ${library.name}...`);
-
-    try {
-      let assets: any[] = [];
-
-      switch (libraryId) {
-        case 'polyhaven':
-          assets = await this.syncPolyHaven();
-          break;
-        case 'ambientcg':
-          assets = await this.syncAmbientCG();
-          break;
-        case 'kenney':
-          assets = await this.syncKenney();
-          break;
-        case 'quaternius':
-          assets = await this.syncQuaternius();
-          break;
-        case 'sketchfab':
-          assets = await this.syncSketchfab();
-          break;
-        default:
-          throw new Error(`Sync not implemented for ${libraryId}`);
+  getSuccessfulAssets(): Map<string, LoadedGLTF> {
+    const assets = new Map<string, LoadedGLTF>();
+    for (const [id, result] of this.results) {
+      if (result.success && result.asset) {
+        assets.set(id, result.asset);
       }
+    }
+    return assets;
+  }
 
-      // Convert to manifest entries
-      for (const asset of assets) {
-        const entry = this.convertToManifestEntry(libraryId, asset);
-        if (entry) {
-          this.addOrUpdateEntry(entry);
-        }
-      }
-
-      this.manifest.libraries[libraryId] = {
-        lastSync: Date.now(),
-        version: library.baseUrl,
+  async exportProcessedManifest(outputPath: string): Promise<void> {
+    const processedEntries = this.manifest.map(entry => {
+      const result = this.results.get(entry.id);
+      return {
+        ...entry,
+        processed: result?.success || false,
+        warnings: result?.warnings || [],
+        error: result?.error,
+        triangleCount: result?.asset?.userData?.lodInfo?.originalTris,
+        hasAnimations: (result?.asset?.animations?.length || 0) > 0,
+        sockets: result?.asset?.userData?.sockets ? Object.keys(result.asset.userData.sockets) : [],
       };
-      this.saveManifest();
+    });
 
-      console.log(`[AssetPipeline] Synced ${library.name}: ${assets.length} assets`);
-    } catch (error) {
-      console.error(`[AssetPipeline] Failed to sync ${library.name}:`, error);
-      throw error;
-    }
-  }
-
-  private async syncPolyHaven(): Promise<any[]> {
-    const response = await fetch('https://api.polyhaven.com/assets?t=models');
-    const data = await response.json();
-    return Object.values(data);
-  }
-
-  private async syncAmbientCG(): Promise<any[]> {
-    const response = await fetch('https://ambientcg.com/api/v2/materials?include=download');
-    const data = await response.json();
-    return data.materials || [];
-  }
-
-  private async syncKenney(): Promise<any[]> {
-    // Kenney doesn't have a public API, would need scraping
-    // Return known asset list
-    return [
-      { id: 'kenney_nature', name: 'Nature Kit', url: 'https://kenney.nl/assets/nature-kit', type: 'models' },
-      { id: 'kenney_medieval', name: 'Medieval RTS', url: 'https://kenney.nl/assets/medieval-rts', type: 'models' },
-      { id: 'kenney_fantasy', name: 'Fantasy RPG', url: 'https://kenney.nl/assets/fantasy-rpg', type: 'models' },
-      { id: 'kenney_proto', name: 'Prototype', url: 'https://kenney.nl/assets/prototype', type: 'models' },
-    ];
-  }
-
-  private async syncQuaternius(): Promise<any[]> {
-    // Quaternius doesn't have API, return known packs
-    return [
-      { id: 'quat_animals', name: 'Animals Pack', url: 'https://quaternius.com/packs/animals.html', type: 'models' },
-      { id: 'quat_fantasy', name: 'Fantasy Creatures', url: 'https://quaternius.com/packs/fantasy-creatures.html', type: 'models' },
-      { id: 'quat_medieval', name: 'Medieval Pack', url: 'https://quaternius.com/packs/medieval.html', type: 'models' },
-    ];
-  }
-
-  private async syncSketchfab(): Promise<any[]> {
-    // Would need API key
-    console.warn('[AssetPipeline] Sketchfab sync requires API key');
-    return [];
-  }
-
-  // ============================================================================
-  // ENTRY MANAGEMENT
-  // ============================================================================
-
-  private convertToManifestEntry(libraryId: string, asset: any): AssetManifestEntry | null {
-    // This would convert library-specific format to our manifest format
-    // Implementation depends on each library's API response
-    return null;
-  }
-
-  addOrUpdateEntry(entry: AssetManifestEntry): void {
-    const existingIndex = this.manifest.assets.findIndex(a => a.id === entry.id);
-    if (existingIndex >= 0) {
-      this.manifest.assets[existingIndex] = entry;
-    } else {
-      this.manifest.assets.push(entry);
-    }
-    this.saveManifest();
-  }
-
-  removeEntry(entryId: string): boolean {
-    const index = this.manifest.assets.findIndex(a => a.id === entryId);
-    if (index >= 0) {
-      this.manifest.assets.splice(index, 1);
-      this.saveManifest();
-      return true;
-    }
-    return false;
-  }
-
-  // ============================================================================
-  // DOWNLOAD MANAGEMENT
-  // ============================================================================
-
-  async downloadAsset(entryId: string): Promise<string> {
-    const entry = this.manifest.assets.find(a => a.id === entryId);
-    if (!entry) throw new Error(`Asset not found: ${entryId}`);
-
-    if (entry.localPath) {
-      // Already downloaded
-      return entry.localPath;
-    }
-
-    const task: DownloadTask = {
-      id: `dl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      entry,
-      status: 'pending',
-      progress: 0,
-      startTime: Date.now(),
+    const output = {
+      version: '1.0.0',
+      processedAt: new Date().toISOString(),
+      totalAssets: this.manifest.length,
+      successful: processedEntries.filter(e => e.processed).length,
+      failed: processedEntries.filter(e => !e.processed).length,
+      assets: processedEntries,
     };
 
-    this.downloadQueue.push(task);
-    this.processQueue();
+    console.log('[AssetPipeline] Processed manifest:', JSON.stringify(output, null, 2));
+  }
+}
 
-    // Wait for completion
-    return new Promise((resolve, reject) => {
-      const checkComplete = setInterval(() => {
-        const currentTask = this.downloadQueue.find(t => t.id === task.id);
-        if (currentTask) {
-          if (currentTask.status === 'completed') {
-            clearInterval(checkComplete);
-            resolve(currentTask.localPath!);
-          } else if (currentTask.status === 'failed') {
-            clearInterval(checkComplete);
-            reject(new Error(currentTask.error));
-          }
-        } else {
-          clearInterval(checkComplete);
-          reject(new Error('Task removed from queue'));
-        }
-      }, 100);
+// ============================================================================
+// MATERIAL ADAPTER - Biome Blending & Triplanar Mapping
+// ============================================================================
+
+export class MaterialAdapter {
+  private renderer: THREE.WebGLRenderer;
+  private biomeMaterials: Map<string, THREE.MeshStandardMaterial> = new Map();
+  private terrainBlendMaterial: THREE.ShaderMaterial | null = null;
+
+  constructor(renderer: THREE.WebGLRenderer) {
+    this.renderer = renderer;
+  }
+
+  async loadBiomeMaterials(manifestEntries: AssetManifestEntry[]): Promise<void> {
+    const materialEntries = manifestEntries.filter(e =>
+      e.targetRole === AssetRole.BiomeTerrain && e.materialMapping
+    );
+
+    for (const entry of materialEntries) {
+      const material = await this.createBiomeMaterial(entry);
+      this.biomeMaterials.set(entry.id, material);
+    }
+  }
+
+  private async createBiomeMaterial(entry: AssetManifestEntry): Promise<THREE.MeshStandardMaterial> {
+    const mapping = entry.materialMapping;
+
+    const hasAlbedo = mapping.Albedo || mapping.albedoMap;
+    const hasNormal = mapping.Normal || mapping.normalMap;
+    const hasRoughness = mapping.Roughness || mapping.roughnessMap;
+    const hasMetalness = mapping.Metalness || mapping.metalnessMap;
+    const hasAO = mapping.AO || mapping.aoMap;
+    const hasHeight = mapping.Height || mapping.heightMap;
+
+    if (hasAlbedo && hasNormal && hasRoughness) {
+      const textures = await this.loadPBRTextureSet(entry.localPath, mapping);
+      return this.createTerrainBlendMaterial(textures, entry.id);
+    }
+
+    return new THREE.MeshStandardMaterial({
+      color: 0x555555,
+      roughness: 0.8,
+      metalness: 0.1,
     });
   }
 
-  private async processQueue(): Promise<void> {
-    while (this.downloadQueue.length > 0 && this.activeDownloads < this.maxConcurrentDownloads) {
-      const task = this.downloadQueue.find(t => t.status === 'pending');
-      if (!task) break;
+  private async loadPBRTextureSet(basePath: string, mapping: Record<string, string>): Promise<Record<string, THREE.Texture>> {
+    const results: Record<string, THREE.Texture> = {};
+    const textureLoader = new THREE.TextureLoader();
 
-      this.activeDownloads++;
-      task.status = 'downloading';
-      this.onProgressCallback?.(task);
-
-      try {
-        const localPath = await this.downloadFile(task);
-        task.localPath = localPath;
-        task.status = 'completed';
-        task.progress = 1;
-        task.endTime = Date.now();
-
-        // Update manifest
-        task.entry.localPath = localPath;
-        this.saveManifest();
-
-        this.onCompleteCallback?.(task);
-      } catch (error) {
-        task.status = 'failed';
-        task.error = (error as Error).message;
-        task.endTime = Date.now();
-        this.onErrorCallback?.(task, error as Error);
-      } finally {
-        this.activeDownloads--;
-        this.onProgressCallback?.(task);
-      }
-    }
-  }
-
-  private async downloadFile(task: DownloadTask): Promise<string> {
-    const entry = task.entry;
-
-    if (!entry.downloadUrl && !entry.localPath) {
-      throw new Error('No download URL available');
-    }
-
-    const url = entry.downloadUrl || entry.localPath;
-    const filename = this.getFilenameFromUrl(url, entry.id);
-    const localPath = `${this.cacheDir}${filename}`;
-
-    // In a real browser environment, we'd use fetch with progress
-    // For now, simulate download
-    task.progress = 0;
-    const totalSize = 10000000; // 10MB estimate
-    let downloaded = 0;
-
-    const simulateDownload = () => {
-      return new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          downloaded += Math.random() * 500000;
-          task.progress = Math.min(0.9, downloaded / totalSize);
-          this.onProgressCallback?.(task);
-
-          if (downloaded >= totalSize) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 50);
-      });
-    };
-
-    await simulateDownload();
-    task.progress = 1;
-    this.onProgressCallback?.(task);
-
-    // In real implementation, would save to IndexedDB or File System Access API
-    // For now, return the local path
-    return localPath;
-  }
-
-  private getFilenameFromUrl(url: string, fallback: string): string {
-    try {
-      const urlObj = new URL(url);
-      const pathname = urlObj.pathname;
-      const filename = pathname.split('/').pop() || fallback;
-      return filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    } catch {
-      return `${fallback}.glb`;
-    }
-  }
-
-  // ============================================================================
-  // ASSET PROCESSING
-  // ============================================================================
-
-  async processAsset(entryId: string, options?: {
-    normalizeScale?: boolean;
-    centerGeometry?: boolean;
-    generateLODs?: number;
-    generateColliders?: boolean;
-    targetFormat?: 'glb' | 'gltf' | 'fbx';
-  }): Promise<{ success: boolean; outputPath?: string; error?: string }> {
-    const entry = this.manifest.assets.find(a => a.id === entryId);
-    if (!entry || !entry.localPath) {
-      return { success: false, error: 'Asset not downloaded' };
-    }
-
-    try {
-      // This would use a Web Worker or WASM module for processing
-      // For now, return success
-      const outputPath = entry.localPath.replace('.glb', '_processed.glb');
-
-      // Update entry with processed info
-      if (options?.generateLODs) {
-        entry.lods = Array.from({ length: options.generateLODs }, (_, i) =>
-          entry.localPath!.replace('.glb', `_lod${i}.glb`)
-        );
-      }
-
-      this.saveManifest();
-      return { success: true, outputPath };
-    } catch (error) {
-      return { success: false, error: (error as Error).message };
-    }
-  }
-
-  // ============================================================================
-  // MATERIAL PROCESSING
-  // ============================================================================
-
-  async processPBRTextures(basePath: string, maps: Partial<PBRMaterialData>, entryId: string): Promise<Record<string, string>> {
-    const results: Record<string, string> = {};
-
-    const textureTypes: [keyof PBRMaterialData, string][] = [
-      ['albedoMap', 'albedo'],
-      ['normalMap', 'normal'],
-      ['roughnessMap', 'roughness'],
-      ['metalnessMap', 'metalness'],
-      ['aoMap', 'ao'],
-      ['heightMap', 'height'],
-      ['emissiveMap', 'emissive'],
+    const mapConfigs: [string, string, THREE.ColorSpace][] = [
+      ['Albedo', 'map', THREE.SRGBColorSpace],
+      ['albedoMap', 'map', THREE.SRGBColorSpace],
+      ['Normal', 'normalMap', THREE.LinearSRGBColorSpace],
+      ['normalMap', 'normalMap', THREE.LinearSRGBColorSpace],
+      ['Roughness', 'roughnessMap', THREE.LinearSRGBColorSpace],
+      ['roughnessMap', 'roughnessMap', THREE.LinearSRGBColorSpace],
+      ['Metalness', 'metalnessMap', THREE.LinearSRGBColorSpace],
+      ['metalnessMap', 'metalnessMap', THREE.LinearSRGBColorSpace],
+      ['AO', 'aoMap', THREE.LinearSRGBColorSpace],
+      ['aoMap', 'aoMap', THREE.LinearSRGBColorSpace],
+      ['Height', 'displacementMap', THREE.LinearSRGBColorSpace],
+      ['heightMap', 'displacementMap', THREE.LinearSRGBColorSpace],
+      ['Emissive', 'emissiveMap', THREE.SRGBColorSpace],
+      ['emissiveMap', 'emissiveMap', THREE.SRGBColorSpace],
     ];
 
-    for (const [mapKey, suffix] of textureTypes) {
-      const mapPath = maps[mapKey];
-      if (!mapPath || typeof mapPath !== 'string') continue;
+    for (const [sourceKey, targetKey, colorSpace] of mapConfigs) {
+      const sourcePath = mapping[sourceKey];
+      if (!sourcePath) continue;
 
-      const fullUrl = mapPath.startsWith('http') ? mapPath : `${basePath}/${mapPath}`;
-      const localPath = await this.downloadTexture(fullUrl, `${entryId}_${suffix}`);
-      results[mapKey] = localPath;
+      try {
+        const fullPath = sourcePath.startsWith('http') ? sourcePath : `${basePath}/${sourcePath}`;
+        const texture = await textureLoader.loadAsync(fullPath);
+        texture.colorSpace = colorSpace;
+        texture.flipY = false;
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        results[targetKey] = texture;
+      } catch (error) {
+        console.warn(`[MaterialAdapter] Failed to load ${sourceKey}: ${error}`);
+      }
     }
 
     return results;
   }
 
-  private async downloadTexture(url: string, name: string): Promise<string> {
-    // Similar to downloadFile but for textures
-    const filename = `${name}.ktx2`; // Prefer KTX2 for GPU compression
-    return `${this.cacheDir}${filename}`;
+  private createTerrainBlendMaterial(textures: Record<string, THREE.Texture>, biomeId: string): THREE.MeshStandardMaterial {
+    const material = new THREE.MeshStandardMaterial({
+      map: textures.map,
+      normalMap: textures.normalMap,
+      roughnessMap: textures.roughnessMap,
+      metalnessMap: textures.metalnessMap,
+      aoMap: textures.aoMap,
+      displacementMap: textures.displacementMap,
+      emissiveMap: textures.emissiveMap,
+      roughness: 0.8,
+      metalness: 0.1,
+      displacementScale: 0.1,
+      displacementBias: -0.05,
+    });
+
+    material.userData = {
+      biomeId,
+      isTerrainMaterial: true,
+      triplanar: true,
+    };
+
+    return material;
   }
 
-  // ============================================================================
-  // PRESET MANIFESTS FOR CHIMERALAND
-  // ============================================================================
-
-  static createChimeraLandManifest(): AssetManifestEntry[] {
-    return [
-      // Terrain materials from ambientCG/Poly Haven
-      {
-        id: 'terrain_grass_01',
-        sourceLibrary: 'ambientCG',
-        license: 'CC0',
-        downloadUrl: 'https://cdn.ambientcg.com/resources/Texture2D/Grass001/Grass001_2K-JPG.zip',
-        localPath: '',
-        targetRole: AssetRole.BiomeTerrain,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: { 'Grass001': 'grass_blend' },
+  createBiomeBlendShader(layerCount: number): THREE.ShaderMaterial {
+    return new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        varying vec3 vWorldNormal;
+        void main() {
+          vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPos.xyz;
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          gl_Position = projectionMatrix * viewMatrix * worldPos;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uLayers[${layerCount}];
+        uniform float uBlendWeights[${layerCount}];
+        uniform float uGlobalScale;
+        varying vec3 vWorldPosition;
+        varying vec3 vWorldNormal;
+        vec3 triplanarSample(sampler2D tex, vec3 pos, vec3 normal, float scale) {
+          vec3 blend = abs(normal);
+          blend = pow(blend, vec3(10.0));
+          blend /= dot(blend, vec3(1.0));
+          vec2 uvX = pos.zy * scale;
+          vec2 uvY = pos.xz * scale;
+          vec2 uvZ = pos.xy * scale;
+          vec3 colX = texture2D(tex, uvX).rgb;
+          vec3 colY = texture2D(tex, uvY).rgb;
+          vec3 colZ = texture2D(tex, uvZ).rgb;
+          return colX * blend.x + colY * blend.y + colZ * blend.z;
+        }
+        void main() {
+          vec3 albedo = vec3(0.0);
+          for (int i = 0; i < ${layerCount}; i++) {
+            float weight = uBlendWeights[i];
+            if (weight > 0.001) {
+              vec3 layerAlbedo = triplanarSample(uLayers[i], vWorldPosition, vWorldNormal, uGlobalScale);
+              albedo += layerAlbedo * weight;
+            }
+          }
+          gl_FragColor = vec4(albedo, 1.0);
+        }
+      `,
+      uniforms: {
+        uLayers: { value: [] },
+        uBlendWeights: { value: new Float32Array(layerCount) },
+        uGlobalScale: { value: 1.0 },
       },
-      {
-        id: 'terrain_dirt_01',
-        sourceLibrary: 'ambientCG',
-        license: 'CC0',
-        downloadUrl: 'https://cdn.ambientcg.com/resources/Texture2D/Soil001/Soil001_2K-JPG.zip',
-        localPath: '',
-        targetRole: AssetRole.BiomeTerrain,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: { 'Soil001': 'dirt_blend' },
-      },
-      {
-        id: 'terrain_rock_01',
-        sourceLibrary: 'ambientCG',
-        license: 'CC0',
-        downloadUrl: 'https://cdn.ambientcg.com/resources/Texture2D/Rock001/Rock001_2K-JPG.zip',
-        localPath: '',
-        targetRole: AssetRole.BiomeTerrain,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: { 'Rock001': 'rock_blend' },
-      },
-      {
-        id: 'terrain_sand_01',
-        sourceLibrary: 'ambientCG',
-        license: 'CC0',
-        downloadUrl: 'https://cdn.ambientcg.com/resources/Texture2D/Sand001/Sand001_2K-JPG.zip',
-        localPath: '',
-        targetRole: AssetRole.BiomeTerrain,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: { 'Sand001': 'sand_blend' },
-      },
-      {
-        id: 'terrain_moss_01',
-        sourceLibrary: 'ambientCG',
-        license: 'CC0',
-        downloadUrl: 'https://cdn.ambientcg.com/resources/Texture2D/Moss001/Moss001_2K-JPG.zip',
-        localPath: '',
-        targetRole: AssetRole.BiomeTerrain,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: { 'Moss001': 'moss_blend' },
-      },
-
-      // Foliage from Kenney
-      {
-        id: 'foliage_tree_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/nature-kit',
-        localPath: '',
-        targetRole: AssetRole.BiomeFoliage,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'foliage_bush_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/nature-kit',
-        localPath: '',
-        targetRole: AssetRole.BiomeFoliage,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'foliage_grass_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/nature-kit',
-        localPath: '',
-        targetRole: AssetRole.BiomeFoliage,
-        scaleFactor: 0.5,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-
-      // Creatures from Quaternius
-      {
-        id: 'creature_deer',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/animals.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 0.8,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'creature_wolf',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/animals.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'creature_boar',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/animals.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 1.2,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'creature_bird',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/animals.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 0.5,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-
-      // Fantasy creatures
-      {
-        id: 'creature_dragon',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/fantasy-creatures.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 2,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'creature_goblin',
-        sourceLibrary: 'quaternius',
-        license: 'CC0',
-        downloadUrl: 'https://quaternius.com/packs/fantasy-creatures.html',
-        localPath: '',
-        targetRole: AssetRole.CreatureBase,
-        scaleFactor: 0.9,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-
-      // Building pieces from Kenney
-      {
-        id: 'building_foundation',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/medieval-rts',
-        localPath: '',
-        targetRole: AssetRole.BuildingPiece,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'building_wall',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/medieval-rts',
-        localPath: '',
-        targetRole: AssetRole.BuildingPiece,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'building_door',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/medieval-rts',
-        localPath: '',
-        targetRole: AssetRole.BuildingPiece,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-
-      // Weapons from Kenney
-      {
-        id: 'weapon_sword_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/medieval-rts',
-        localPath: '',
-        targetRole: AssetRole.Weapon,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'weapon_bow_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/medieval-rts',
-        localPath: '',
-        targetRole: AssetRole.Weapon,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'weapon_staff_01',
-        sourceLibrary: 'kenney',
-        license: 'CC0',
-        downloadUrl: 'https://kenney.nl/assets/fantasy-rpg',
-        localPath: '',
-        targetRole: AssetRole.Weapon,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-
-      // HDRI skies from Poly Haven
-      {
-        id: 'hdri_sunny',
-        sourceLibrary: 'polyhaven',
-        license: 'CC0',
-        downloadUrl: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/4k/sunny_vondelpark_4k.exr',
-        localPath: '',
-        targetRole: AssetRole.Prop,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'hdri_forest',
-        sourceLibrary: 'polyhaven',
-        license: 'CC0',
-        downloadUrl: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/4k/forest_road_4k.exr',
-        localPath: '',
-        targetRole: AssetRole.Prop,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-      {
-        id: 'hdri_sunset',
-        sourceLibrary: 'polyhaven',
-        license: 'CC0',
-        downloadUrl: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/4k/sunset_4k.exr',
-        localPath: '',
-        targetRole: AssetRole.Prop,
-        scaleFactor: 1,
-        upAxisFix: 'Y_UP',
-        materialMapping: {},
-      },
-    ];
+    });
   }
 
-  // ============================================================================
-  // INITIALIZATION
-  // ============================================================================
+  getBiomeMaterial(biomeId: string): THREE.MeshStandardMaterial | undefined {
+    return this.biomeMaterials.get(biomeId);
+  }
 
-  initializeChimeraLandAssets(): void {
-    const entries = AssetPipeline.createChimeraLandManifest();
-    for (const entry of entries) {
-      this.addOrUpdateEntry(entry);
+  applyBiomeTint(material: THREE.MeshStandardMaterial, biomeConfig: { skyTint: { r: number; g: number; b: number }; fogColor: { r: number; g: number; b: number } }): void {
+    if (material.map) {
+      material.color.setRGB(
+        biomeConfig.skyTint.r * 0.3 + 0.7,
+        biomeConfig.skyTint.g * 0.3 + 0.7,
+        biomeConfig.skyTint.b * 0.3 + 0.7
+      );
     }
-    console.log(`[AssetPipeline] Initialized ${entries.length} ChimeraLand asset entries`);
   }
 }
 
 // ============================================================================
-// MATERIAL PROCESSING UTILITIES
+// CHIMERA SOCKET SYSTEM - Runtime attachment of parts
 // ============================================================================
 
-export class MaterialProcessor {
-  static async createPBRMaterialFromMaps(maps: Record<string, string>): Promise<PBRMaterialData> {
-    // This would load and process texture maps
-    // For now, return a basic PBR material data structure
-    return {
-      albedoMap: maps.albedo || maps.baseColor,
-      normalMap: maps.normal,
-      roughnessMap: maps.roughness,
-      metalnessMap: maps.metalness || maps.metallic,
-      aoMap: maps.ao || maps.ambientOcclusion,
-      heightMap: maps.height || maps.displacement,
-      emissiveMap: maps.emissive,
-      albedoColor: { x: 1, y: 1, z: 1 },
-      emissiveColor: { x: 0, y: 0, z: 0 },
-      emissiveIntensity: 0,
-      roughness: 0.8,
-      metalness: 0,
-      alphaMode: 'OPAQUE',
-      alphaCutoff: 0.5,
-      doubleSided: false,
-    };
+export interface ChimeraSocket {
+  id: string;
+  boneName: string;
+  type: 'head' | 'back' | 'tail' | 'frontLegs' | 'claws' | 'core' | 'horn';
+  compatibleParts: string[];
+  offset: THREE.Vector3;
+  rotation: THREE.Quaternion;
+  scale: THREE.Vector3;
+  attachedPartId: string | null;
+  attachedObject: THREE.Object3D | null;
+}
+
+export class ChimeraSocketSystem {
+  private sockets: Map<string, ChimeraSocket> = new Map();
+  private assetLoader: AssetLoader;
+  private partCache: Map<string, THREE.Group> = new Map();
+
+  constructor(assetLoader: AssetLoader) {
+    this.assetLoader = assetLoader;
   }
 
-  static async generateLODs(
-    modelPath: string,
-    levels: number = 3,
-    targetRatios: number[] = [1, 0.5, 0.25]
-  ): Promise<string[]> {
-    // Would use meshoptimizer or similar
-    // Returns paths to generated LOD models
-    return targetRatios.map((ratio, i) =>
-      modelPath.replace('.glb', `_lod${i}.glb`)
-    );
+  initializeFromCreatureData(creatureData: any): void {
+    this.sockets.clear();
+
+    if (creatureData.anatomy?.sockets) {
+      for (const socketData of creatureData.anatomy.sockets) {
+        const socket: ChimeraSocket = {
+          id: socketData.id,
+          boneName: socketData.boneName,
+          type: socketData.type,
+          compatibleParts: socketData.compatibleParts || [],
+          offset: new THREE.Vector3(socketData.offset.x, socketData.offset.y, socketData.offset.z),
+          rotation: new THREE.Quaternion(socketData.rotation.x, socketData.rotation.y, socketData.rotation.z, socketData.rotation.w),
+          scale: new THREE.Vector3(socketData.visualScale?.x || 1, socketData.visualScale?.y || 1, socketData.visualScale?.z || 1),
+          attachedPartId: null,
+          attachedObject: null,
+        };
+        this.sockets.set(socket.id, socket);
+      }
+    }
   }
 
-  static async generateColliders(modelPath: string): Promise<{
-    convexHull: string;
-    box: string;
-    capsule: string;
-  }> {
-    // Would use VHACD or similar for convex decomposition
-    return {
-      convexHull: modelPath.replace('.glb', '_collider.glb'),
-      box: modelPath.replace('.glb', '_box.glb'),
-      capsule: modelPath.replace('.glb', '_capsule.glb'),
-    };
+  bindToModel(model: THREE.Group): void {
+    for (const socket of this.sockets.values()) {
+      const bone = this.findBone(model, socket.boneName);
+      if (bone) {
+        const socketObj = new THREE.Object3D();
+        socketObj.name = `Socket_${socket.id}`;
+        socketObj.position.copy(socket.offset);
+        socketObj.quaternion.copy(socket.rotation);
+        socketObj.scale.copy(socket.scale);
+        bone.add(socketObj);
+        socket.attachedObject = socketObj;
+      } else {
+        console.warn(`[ChimeraSocketSystem] Bone "${socket.boneName}" not found for socket "${socket.id}"`);
+      }
+    }
+  }
+
+  private findBone(model: THREE.Group, boneName: string): THREE.Bone | THREE.Object3D | null {
+    let found: THREE.Bone | THREE.Object3D | null = null;
+    model.traverse((obj) => {
+      if (obj.name === boneName && ((obj as any).isBone || obj instanceof THREE.SkinnedMesh)) {
+        found = obj;
+      }
+    });
+    return found;
+  }
+
+  async attachPart(socketId: string, partAssetId: string, partManifestEntry: any): Promise<boolean> {
+    const socket = this.sockets.get(socketId);
+    if (!socket) {
+      console.error(`[ChimeraSocketSystem] Socket "${socketId}" not found`);
+      return false;
+    }
+
+    if (!socket.compatibleParts.includes(partAssetId)) {
+      console.warn(`[ChimeraSocketSystem] Part "${partAssetId}" not compatible with socket "${socketId}"`);
+    }
+
+    this.detachPart(socketId);
+
+    let partGroup = this.partCache.get(partAssetId);
+    if (!partGroup) {
+      try {
+        const gltf = await this.assetLoader.loadGLTFFromManifest(partManifestEntry, {
+          normalizeScale: true,
+          centerGeometry: true,
+        });
+        partGroup = gltf.scene.clone(true);
+        this.partCache.set(partAssetId, partGroup);
+      } catch (error) {
+        console.error(`[ChimeraSocketSystem] Failed to load part ${partAssetId}:`, error);
+        return false;
+      }
+    }
+
+    const attachedPart = partGroup.clone(true);
+
+    if (partManifestEntry.socketBinding) {
+      const binding = partManifestEntry.socketBinding;
+      attachedPart.position.set(binding.offset.x, binding.offset.y, binding.offset.z);
+      attachedPart.quaternion.set(binding.rotation.x, binding.rotation.y, binding.rotation.z, binding.rotation.w);
+      attachedPart.scale.set(binding.scale.x, binding.scale.y, binding.scale.z);
+    } else {
+      attachedPart.position.copy(socket.offset);
+      attachedPart.quaternion.copy(socket.rotation);
+      attachedPart.scale.copy(socket.scale);
+    }
+
+    if (socket.attachedObject) {
+      socket.attachedObject.add(attachedPart);
+      socket.attachedPartId = partAssetId;
+      console.log(`[ChimeraSocketSystem] Attached "${partAssetId}" to socket "${socketId}"`);
+      return true;
+    }
+
+    return false;
+  }
+
+  detachPart(socketId: string): boolean {
+    const socket = this.sockets.get(socketId);
+    if (!socket || !socket.attachedObject) return false;
+
+    while (socket.attachedObject.children.length > 0) {
+      const child = socket.attachedObject.children[0];
+      if (!child) break;
+      socket.attachedObject.remove(child);
+      child.traverse(obj => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(m => m.dispose());
+        }
+      });
+    }
+
+    socket.attachedPartId = null;
+    return true;
+  }
+
+  getAttachedPart(socketId: string): string | null {
+    return this.sockets.get(socketId)?.attachedPartId || null;
+  }
+
+  getAllSockets(): ChimeraSocket[] {
+    return Array.from(this.sockets.values());
+  }
+
+  serialize(): any {
+    const data: any = {};
+    for (const [id, socket] of this.sockets) {
+      data[id] = {
+        attachedPartId: socket.attachedPartId,
+        offset: { x: socket.offset.x, y: socket.offset.y, z: socket.offset.z },
+        rotation: { x: socket.rotation.x, y: socket.rotation.y, z: socket.rotation.z, w: socket.rotation.w },
+        scale: { x: socket.scale.x, y: socket.scale.y, z: socket.scale.z },
+      };
+    }
+    return data;
+  }
+
+  deserialize(data: any, model: THREE.Group): void {
+    for (const [id, socketData] of Object.entries(data)) {
+      const socket = this.sockets.get(id);
+      if (socket && (socketData as any).attachedPartId) {
+        console.log(`[ChimeraSocketSystem] Would re-attach ${(socketData as any).attachedPartId} to ${id}`);
+      }
+    }
   }
 }

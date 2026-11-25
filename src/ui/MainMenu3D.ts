@@ -151,7 +151,8 @@ export class MainMenu3D {
     head.castShadow = true;
     group.add(head);
     const legGeo = new THREE.CylinderGeometry(0.1, 0.15, 1.2, 6);
-    for (const [lx, lz] of [[-0.4, -0.4], [0.4, -0.4], [-0.4, 0.4], [0.4, 0.4]]) {
+    const legPositions: [number, number][] = [[-0.4, -0.4], [0.4, -0.4], [-0.4, 0.4], [0.4, 0.4]];
+    for (const [lx, lz] of legPositions) {
       const leg = new THREE.Mesh(legGeo, bodyMat);
       leg.position.set(lx, 0.3, lz);
       leg.castShadow = true;

@@ -12,6 +12,7 @@ import { TerrainSystem } from '@world/TerrainSystem.js';
 import { BiomeManager } from '@world/BiomeManager.js';
 import { MainMenu3D } from '@ui/MainMenu3D.js';
 import { LoadingScreen, LoadingStage } from '@ui/LoadingScreen.js';
+import { LogConsole, initLogConsole, LogLevel } from '@ui/LogConsole.js';
 
 // ============================================================================
 // GLOBAL REFERENCES
@@ -31,6 +32,18 @@ let loadingScreen: LoadingScreen;
 // ============================================================================
 
 async function main(): Promise<void> {
+  // Initialize Log Console FIRST so it captures all logs
+  const logConsole = initLogConsole({
+    maxEntries: 5000,
+    persistAcrossLoads: true,
+    showTimestamps: true,
+    showLevels: true,
+    autoScroll: true,
+    defaultFilter: [LogLevel.Info, LogLevel.Warn, LogLevel.Error],
+  });
+  // Make globally accessible for debugging
+  (window as any).logConsole = logConsole;
+
   console.log('🧬 ChimeraLand 3D - Starting...');
 
   // Get container

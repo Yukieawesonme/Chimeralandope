@@ -1,0 +1,302 @@
+{
+  "metadata": {
+    "saveId": "save_1700000000_abc123def",
+    "slotName": "Slot_01",
+    "timestamp": 1700000000000,
+    "playTimeSeconds": 7245,
+    "worldSeed": "chimeraland_1700000000_xyz789",
+    "engineVersion": "0.2.0-3d-prototype",
+    "currentBiome": "SpiritPlains",
+    "playerName": "Aventureiro"
+  },
+  "player": {
+    "position": { "x": 125.5, "y": 35.0, "z": -42.3 },
+    "rotation": { "x": 0, "y": 0.8, "z": 0, "w": 0.6 },
+    "velocity": { "x": 0, "y": 0, "z": 0 },
+    "locomotionState": "Idle",
+    "hp": 100,
+    "maxHp": 100,
+    "stamina": 85,
+    "maxStamina": 100,
+    "fury": 45,
+    "oxygen": 100,
+    "equippedWeapons": ["iron_sword", "wooden_bow", "staff_elemental"],
+    "activeWeaponIndex": 0,
+    "skillCooldowns": {
+      "skill_lightning_dash": 0,
+      "skill_whirlwind_slash": 3.2,
+      "skill_parry_mastery": 0
+    },
+    "skillLevels": {
+      "skill_lightning_dash": 2,
+      "skill_whirlwind_slash": 1,
+      "skill_parry_mastery": 1,
+      "skill_meteor_rain": 1
+    },
+    "inventory": [
+      { "itemId": "wood", "itemType": "Resource", "quantity": 150 },
+      { "itemId": "stone", "itemType": "Resource", "quantity": 80 },
+      { "itemId": "crystal", "itemType": "Resource", "quantity": 12 },
+      { "itemId": "essence", "itemType": "Resource", "quantity": 5 },
+      { "itemId": "health_potion", "itemType": "Consumable", "quantity": 15 },
+      { "itemId": "stamina_potion", "itemType": "Consumable", "quantity": 10 },
+      { "itemId": "wolf_fang", "itemType": "ChimeraPart", "quantity": 3 },
+      { "itemId": "eagle_wing", "itemType": "ChimeraPart", "quantity": 1 },
+      { "itemId": "scorpion_tail", "itemType": "ChimeraPart", "quantity": 0 },
+      { "itemId": "iron_sword", "itemType": "Weapon", "quantity": 1, "durability": 180, "maxDurability": 200 },
+      { "itemId": "wooden_bow", "itemType": "Weapon", "quantity": 1, "durability": 90, "maxDurability": 120 },
+      { "itemId": "staff_elemental", "itemType": "Weapon", "quantity": 1, "durability": 150, "maxDurability": 200 }
+    ],
+    "activeBuffs": [
+      { "id": "well_fed", "remainingTime": 1200, "stacks": 1, "sourceEntityId": "campfire_01" },
+      { "id": "spirit_blessing", "remainingTime": 300, "stacks": 1, "sourceEntityId": "spirit_spring_03" }
+    ]
+  },
+  "chimeras": [
+    {
+      "id": "chimera_001",
+      "baseSpeciesId": "spirit_wolf",
+      "name": "Lunar",
+      "level": 12,
+      "experience": 2340,
+      "hp": 450,
+      "maxHp": 480,
+      "mutations": [
+        {
+          "partId": "part_eagle_wings",
+          "socketId": "back",
+          "sourceCreatureId": "sky_eagle",
+          "attributeBonuses": { "speed": 2, "hp": 100, "stamina": 50 },
+          "inheritedSkillId": "skill_aerial_dive"
+        },
+        {
+          "partId": "part_alpha_horns",
+          "socketId": "head_horns",
+          "sourceCreatureId": "spirit_wolf",
+          "attributeBonuses": { "damage": 15, "poise": 30 },
+          "inheritedSkillId": "skill_alpha_roar"
+        }
+      ],
+      "state": "pet",
+      "socketBindings": {
+        "back": "part_eagle_wings",
+        "head_horns": "part_alpha_horns"
+      }
+    },
+    {
+      "id": "chimera_002",
+      "baseSpeciesId": "sky_eagle",
+      "name": "Zephyr",
+      "level": 8,
+      "experience": 890,
+      "hp": 320,
+      "maxHp": 350,
+      "mutations": [],
+      "state": "mount",
+      "socketBindings": {}
+    },
+    {
+      "id": "chimera_003",
+      "baseSpeciesId": "abyssal_scorpion",
+      "name": "Venom",
+      "level": 15,
+      "experience": 5600,
+      "hp": 620,
+      "maxHp": 680,
+      "mutations": [
+        {
+          "partId": "part_scorpion_tail",
+          "socketId": "tail_socket",
+          "sourceCreatureId": "abyssal_scorpion",
+          "attributeBonuses": { "damage": 20, "elementalResist": { "poison": 50 } },
+          "inheritedSkillId": "skill_venom_strike"
+        }
+      ],
+      "state": "inventory",
+      "socketBindings": {
+        "tail_socket": "part_scorpion_tail"
+      }
+    }
+  ],
+  "buildings": [
+    {
+      "pieceId": "piece_001",
+      "type": "foundation_stone",
+      "position": { "x": 100, "y": 32, "z": -50 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "top": "piece_002",
+        "north": "piece_003",
+        "east": "piece_004"
+      },
+      "durability": 2000,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_002",
+      "type": "floor_wood",
+      "position": { "x": 100, "y": 34, "z": -50 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_001",
+        "top": "piece_005",
+        "edge_n": "piece_006"
+      },
+      "durability": 1000,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_003",
+      "type": "wall_stone",
+      "position": { "x": 100, "y": 33, "z": -52 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_001",
+        "top": "piece_007"
+      },
+      "durability": 1500,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_004",
+      "type": "wall_stone",
+      "position": { "x": 102, "y": 33, "z": -50 },
+      "rotation": { "x": 0, "y": 1.57, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_001",
+        "top": "piece_008"
+      },
+      "durability": 1500,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_005",
+      "type": "workbench",
+      "position": { "x": 100, "y": 34.2, "z": -48 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_002"
+      },
+      "durability": 1200,
+      "stationState": {
+        "knownRecipes": ["iron_sword", "health_potion", "workbench_upgrade"],
+        "craftQueue": []
+      }
+    },
+    {
+      "pieceId": "piece_006",
+      "type": "wall_stone",
+      "position": { "x": 100, "y": 33, "z": -48 },
+      "rotation": { "x": 0, "y": 3.14, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_002",
+        "top": "piece_009"
+      },
+      "durability": 1500,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_007",
+      "type": "wall_stone",
+      "position": { "x": 100, "y": 35, "z": -52 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_003",
+        "top": "piece_010"
+      },
+      "durability": 1500,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_008",
+      "type": "wall_stone_doorway",
+      "position": { "x": 102, "y": 33, "z": -48 },
+      "rotation": { "x": 0, "y": 1.57, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_004"
+      },
+      "durability": 1400,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_009",
+      "type": "wall_stone",
+      "position": { "x": 100, "y": 35, "z": -48 },
+      "rotation": { "x": 0, "y": 3.14, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_006"
+      },
+      "durability": 1500,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_010",
+      "type": "roof_thatch",
+      "position": { "x": 100, "y": 37, "z": -52 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_007"
+      },
+      "durability": 800,
+      "stationState": {}
+    },
+    {
+      "pieceId": "piece_011",
+      "type": "chest_wood",
+      "position": { "x": 100.5, "y": 34.2, "z": -49.5 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "socketConnections": {
+        "bottom": "piece_002"
+      },
+      "durability": 800,
+      "stationState": {
+        "items": [
+          { "itemId": "iron_ore", "quantity": 20 },
+          { "itemId": "spirit_essence", "quantity": 3 },
+          { "itemId": "ancient_wood", "quantity": 10 }
+        ]
+      }
+    }
+  ],
+  "world": {
+    "destroyedResourceNodes": {
+      "tree_045": 1700003600,
+      "ore_012": 1700007200,
+      "crystal_003": 1700010800
+    },
+    "creatureStates": {
+      "creature_spirit_wolf_007": {
+        "entityId": "creature_spirit_wolf_007",
+        "speciesId": "spirit_wolf",
+        "position": { "x": 150, "y": 32, "z": -30 },
+        "rotation": { "x": 0, "y": 0.5, "z": 0, "w": 0.86 },
+        "hp": 450,
+        "state": "Wander",
+        "isBoss": false,
+        "isUnique": false
+      },
+      "creature_sky_eagle_003": {
+        "entityId": "creature_sky_eagle_003",
+        "speciesId": "sky_eagle",
+        "position": { "x": 200, "y": 120, "z": 50 },
+        "rotation": { "x": -0.2, "y": 1.2, "z": 0, "w": 0.98 },
+        "hp": 680,
+        "state": "Fly",
+        "isBoss": false,
+        "isUnique": false
+      }
+    },
+    "modifiedChunks": ["1,0", "2,0", "0,-1", "1,-1"]
+  }
+}
