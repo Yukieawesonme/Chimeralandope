@@ -225,64 +225,12 @@ export class LogConsole {
     document.body.appendChild(this.container);
     this.isVisible = true;
 
-    console.log('[LogConsole] UI created, container:', this.container, 'classes:', this.container.className);
-    console.log('[LogConsole] container innerHTML length:', this.container.innerHTML.length);
-    console.log('[LogConsole] container in DOM:', document.body.contains(this.container));
-    console.log('[LogConsole] computed style display:', getComputedStyle(this.container).display);
-    console.log('[LogConsole] computed style height:', getComputedStyle(this.container).height);
-    console.log('[LogConsole] computed style z-index:', getComputedStyle(this.container).zIndex);
-    console.log('[LogConsole] computed style bottom:', getComputedStyle(this.container).bottom);
-    console.log('[LogConsole] document.head has styles:', !!document.getElementById('log-console-styles'));
-
-    // AGGRESSIVE DEBUG - make it impossible to miss
-    this.container.style.outline = '4px solid #ff0000';
-    this.container.style.outlineOffset = '4px';
-    this.container.style.background = 'rgba(255, 0, 0, 0.3)';
-    this.container.style.zIndex = '999999';
-    this.container.style.position = 'fixed';
-    this.container.style.bottom = '0';
-    this.container.style.left = '0';
-    this.container.style.right = '0';
-    this.container.style.height = '300px';
-
-    // Add test div to BODY (not container) to verify DOM works
-    const testDiv = document.createElement('div');
-    testDiv.style.cssText = 'position:fixed;top:50px;left:50px;padding:20px;background:#ff0000;color:#fff;font-weight:bold;z-index:1000000;border-radius:8px;font-family:monospace;font-size:18px;box-shadow:0 0 20px #ff0000;';
-    testDiv.textContent = '🔴 LOGCONSOLE DEBUG - SEE ME!';
-    document.body.appendChild(testDiv);
-    console.log('[LogConsole] Test div added to body');
-
-    // Also add test div inside container
-    const testDiv2 = document.createElement('div');
-    testDiv2.style.cssText = 'position:absolute;top:10px;left:10px;padding:15px;background:#ff0000;color:#fff;font-weight:bold;z-index:10001;border-radius:8px;font-family:monospace;font-size:16px;box-shadow:0 0 20px #ff0000;';
-    testDiv2.textContent = '🔴 CONTAINER DEBUG';
-    this.container.appendChild(testDiv2);
-
     // Add mobile detection class
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                      (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
     if (isMobile) {
       this.container.classList.add('mobile');
     }
-
-    // Force a re-render after a short delay to catch any CSS issues
-    setTimeout(() => {
-      const container = this.container;
-      if (!container) return;
-      console.log('[LogConsole] After 100ms:');
-      console.log('[LogConsole] computed style display:', getComputedStyle(container).display);
-      console.log('[LogConsole] computed style height:', getComputedStyle(container).height);
-      console.log('[LogConsole] computed style bottom:', getComputedStyle(container).bottom);
-      console.log('[LogConsole] computed style z-index:', getComputedStyle(container).zIndex);
-      console.log('[LogConsole] container offsetHeight:', container.offsetHeight);
-      console.log('[LogConsole] container offsetWidth:', container.offsetWidth);
-      console.log('[LogConsole] document.body.scrollHeight:', document.body.scrollHeight);
-      console.log('[LogConsole] window.innerHeight:', window.innerHeight);
-
-      // Also check if test divs are visible
-      const testDivs = document.querySelectorAll('[style*="background:#ff0000"]');
-      console.log('[LogConsole] Red test divs found:', testDivs.length);
-    }, 100);
 
     // Cache elements
     this.logListEl = this.container.querySelector('.log-entries') as HTMLElement;
