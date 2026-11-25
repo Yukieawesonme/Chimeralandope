@@ -22,6 +22,8 @@
   "author": "ChimeraLand Team",
   "license": "MIT",
   "dependencies": {
+    "crawlee": "^3.18.2",
+    "firecrawl": "^4.54.0",
     "three": "^0.165.0",
     "zod": "^3.22.0"
   },

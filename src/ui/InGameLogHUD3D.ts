@@ -77,6 +77,7 @@ export class InGameLogHUD3D {
   private canvas!: HTMLCanvasElement;
   private textureCache: Map<string, THREE.Texture> = new Map();
   private keyHandler: ((e: KeyboardEvent) => void) | null = null;
+  private handleResize: (() => void) | null = null;
   private fontCanvas!: HTMLCanvasElement;
   private fontContext!: CanvasRenderingContext2D;
   private isInitialized = false;
@@ -147,11 +148,52 @@ export class InGameLogHUD3D {
     // Bind keys
     this.bindKeys();
 
+    // Handle window resize
+    this.handleResize = this.handleResizeHandler.bind(this);
+    window.addEventListener('resize', this.handleResize);
+
     // Set initial visibility
     this.setVisibility(true);
 
     this.isInitialized = true;
     console.log('[InGameLogHUD3D] Initialized with Three.js');
+  }
+
+  private handleResizeHandler(): void {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    if (this.camera) {
+      this.camera.left = 0;
+      this.camera.right = width;
+      this.camera.top = height;
+      this.camera.bottom = 0;
+      this.camera.updateProjectionMatrix();
+    }
+
+    if (this.backgroundMesh) {
+      this.backgroundMesh.position.set(this.getX() + this.config.width / 2, this.getY() + this.config.height / 2, 0);
+    }
+    if (this.borderMesh) {
+      // Recreate border geometry
+      this.borderMesh.geometry.dispose();
+      const x = this.getX();
+      const y = this.getY();
+      const { width, height } = this.config;
+      const borderVertices = new Float32Array([
+        x, y, 0.1,
+        x + this.config.width, y, 0.1,
+        x + this.config.width, y + this.config.height, 0.1,
+        x, y + this.config.height, 0.1,
+      ]);
+      this.borderMesh.geometry.setAttribute('position', new THREE.BufferAttribute(borderVertices, 3));
+    }
+
+    this.updateHeaderPosition();
+    this.updateCountPosition();
+
+    // Rebuild text sprites to update positions
+    this.rebuildTextSprites();
   }
 
   private createBackground(): void {
@@ -415,6 +457,7 @@ export class InGameLogHUD3D {
   // Call this in the game's render loop
   render(renderer: THREE.WebGLRenderer): void {
     if (!this.isVisible || !this.isInitialized) return;
+    console.log('[InGameLogHUD3D] Rendering HUD, visible:', this.isVisible, 'initialized:', this.isInitialized, 'sprites:', this.textSprites.length);
     renderer.autoClear = false;
     renderer.render(this.scene, this.camera);
     renderer.autoClear = true;
@@ -462,6 +505,12 @@ export class InGameLogHUD3D {
       this.countSprite = null;
     }
     this.scene.clear();
+
+    // Clean up resize listener
+    if (this.handleResize) {
+      window.removeEventListener('resize', this.handleResize);
+      this.handleResize = null;
+    }
   }
 }
 

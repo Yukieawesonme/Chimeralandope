@@ -132,117 +132,133 @@ export class InputManager {
 
   private setupTouchControls(): void {
     // Create virtual joystick and buttons if on touch device
-    if ('ontouchstart' in window) {
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       this.createTouchUI();
     }
   }
 
   private createTouchUI(): void {
+    // Use existing static elements if they exist, otherwise create them
     // Joystick container
-    const joystickContainer = document.createElement('div');
-    joystickContainer.id = 'virtual-joystick';
-    joystickContainer.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      width: 120px;
-      height: 120px;
-      touch-action: none;
-      z-index: 100;
-      pointer-events: none;
-    `;
+    this.joystickElement = document.getElementById('virtual-joystick') as HTMLElement;
+    if (!this.joystickElement) {
+      const joystickContainer = document.createElement('div');
+      joystickContainer.id = 'virtual-joystick';
+      joystickContainer.className = 'virtual-joystick';
+      joystickContainer.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 120px;
+        height: 120px;
+        touch-action: none;
+        z-index: 40;
+        pointer-events: none;
+      `;
 
-    this.joystickElement = document.createElement('div');
-    this.joystickElement.style.cssText = `
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      background: rgba(0,0,0,0.2);
-      pointer-events: auto;
-    `;
+      this.joystickElement = document.createElement('div');
+      this.joystickElement.className = 'joystick-base';
+      this.joystickElement.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(66, 217, 197, 0.5);
+        border-radius: 50%;
+        background: rgba(8, 20, 38, 0.8);
+        pointer-events: auto;
+      `;
 
-    this.stickElement = document.createElement('div');
-    this.stickElement.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 40px;
-      height: 40px;
-      margin: -20px 0 0 -20px;
-      background: rgba(255,255,255,0.6);
-      border-radius: 50%;
-      transition: transform 0.05s ease-out;
-      pointer-events: none;
-    `;
+      this.stickElement = document.createElement('div');
+      this.stickElement.className = 'joystick-stick';
+      this.stickElement.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 45%;
+        height: 45%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(66, 217, 197, 0.9), rgba(124, 58, 237, 0.9));
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow:
+          0 4px 12px rgba(66, 217, 197, 0.5),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+        transition: transform 0.05s ease-out;
+        pointer-events: none;
+      `;
 
-    this.joystickElement.appendChild(this.stickElement);
-    joystickContainer.appendChild(this.joystickElement);
-    document.body.appendChild(joystickContainer);
+      this.joystickElement.appendChild(this.stickElement);
+      const container = document.createElement('div');
+      container.id = 'virtual-joystick';
+      container.className = 'virtual-joystick';
+      container.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 120px;
+        height: 120px;
+        touch-action: none;
+        z-index: 40;
+        pointer-events: none;
+      `;
+      container.appendChild(this.joystickElement);
+      document.body.appendChild(container);
+    } else {
+      this.stickElement = this.joystickElement.querySelector('.joystick-stick') as HTMLElement;
+    }
 
     // Attack button
-    this.attackButton = document.createElement('button');
-    this.attackButton.id = 'touch-attack';
-    this.attackButton.innerHTML = '⚔️';
-    this.attackButton.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: rgba(255,100,100,0.8);
-      border: 2px solid rgba(255,255,255,0.5);
-      color: white;
-      font-size: 28px;
-      z-index: 100;
-      touch-action: manipulation;
-    `;
-    document.body.appendChild(this.attackButton);
+    this.attackButton = document.getElementById('touch-attack') as HTMLButtonElement;
+    if (!this.attackButton) {
+      this.attackButton = document.createElement('button');
+      this.attackButton.id = 'touch-attack';
+      this.attackButton.className = 'touch-btn touch-btn-attack';
+      this.attackButton.innerHTML = '⚔️';
+      this.attackButton.setAttribute('aria-label', 'Atacar');
+      document.body.appendChild(this.attackButton);
+    }
 
     // Dodge button
-    this.dodgeButton = document.createElement('button');
-    this.dodgeButton.id = 'touch-dodge';
-    this.dodgeButton.innerHTML = '💨';
-    this.dodgeButton.style.cssText = `
-      position: fixed;
-      bottom: 110px;
-      right: 20px;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: rgba(100,200,255,0.8);
-      border: 2px solid rgba(255,255,255,0.5);
-      color: white;
-      font-size: 28px;
-      z-index: 100;
-      touch-action: manipulation;
-    `;
-    document.body.appendChild(this.dodgeButton);
+    this.dodgeButton = document.getElementById('touch-dodge') as HTMLButtonElement;
+    if (!this.dodgeButton) {
+      this.dodgeButton = document.createElement('button');
+      this.dodgeButton.id = 'touch-dodge';
+      this.dodgeButton.className = 'touch-btn touch-btn-dodge';
+      this.dodgeButton.innerHTML = '💨';
+      this.dodgeButton.setAttribute('aria-label', 'Esquivar');
+      document.body.appendChild(this.dodgeButton);
+    }
 
     // Skill buttons
     for (let i = 0; i < 4; i++) {
-      const btn = document.createElement('button');
-      btn.id = `touch-skill-${i}`;
-      btn.innerHTML = `${i + 1}`;
-      btn.style.cssText = `
-        position: fixed;
-        bottom: ${200 + i * 60}px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: rgba(255,255,100,0.8);
-        border: 2px solid rgba(255,255,255,0.5);
-        color: white;
-        font-size: 18px;
-        z-index: 100;
-        touch-action: manipulation;
-        opacity: 0.5;
-      `;
+      const btn = document.getElementById(`touch-skill-${i}`) as HTMLButtonElement;
+      if (!btn) {
+        const btn = document.createElement('button');
+        btn.id = `touch-skill-${i}`;
+        btn.className = 'touch-btn touch-btn-skill';
+        btn.innerHTML = `${i + 1}`;
+        btn.setAttribute('aria-label', `Skill ${i + 1}`);
+        btn.style.cssText = `
+          position: fixed;
+          bottom: ${200 + i * 60}px;
+          right: 20px;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: rgba(255,255,100,0.8);
+          border: 2px solid rgba(255,255,255,0.5);
+          color: white;
+          font-size: 18px;
+          z-index: 100;
+          touch-action: manipulation;
+          opacity: 0.5;
+        `;
+        document.body.appendChild(btn);
+      }
       this.skillButtons.push(btn);
-      document.body.appendChild(btn);
     }
 
     // Bind touch events

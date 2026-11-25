@@ -193,7 +193,10 @@ export class GameEngine {
     // Render In-Game Log HUD 3D after main scene
     const hud = (window as any).inGameLogHUD3D;
     if (hud && hud.isInitialized) {
+      console.log('[GameEngine] Rendering HUD3D, hud:', hud, 'isVisible:', hud.isVisible, 'initialized:', hud.isInitialized);
       hud.render(this.renderer);
+    } else {
+      console.log('[GameEngine] HUD3D not ready:', hud ? 'not initialized' : 'not found');
     }
   }
 

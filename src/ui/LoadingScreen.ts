@@ -207,10 +207,10 @@ export class LoadingScreen {
 
     await this.sleep(50); // Yield to UI
 
-    // Generate initial chunks around player spawn
+    // Generate initial chunks around player spawn - reduced radius for faster loading
     const spawnX = 0;
     const spawnZ = 0;
-    const radius = 4; // Chunks to generate initially
+    const radius = 2; // Reduced from 4 to 2 for faster initial loading (25 chunks instead of 81)
 
     const totalChunks = (radius * 2 + 1) ** 2;
     let generated = 0;
@@ -225,24 +225,59 @@ export class LoadingScreen {
         // Generate if not already generated
         if (!chunk.isLoaded) {
           console.log(`[LoadingScreen] Generating chunk ${cx},${cz}...`);
-          this.terrainSystem.generateChunk(chunk);
-          console.log(`[LoadingScreen] Chunk ${cx},${cz} generated`);
+          try {
+            // Generate chunk asynchronously
+            await this.generateChunkAsync(chunk);
+            console.log(`[LoadingScreen] Chunk ${cx},${cz} generated`);
+          } catch (error) {
+            console.error(`[LoadingScreen] Error generating chunk ${cx},${cz}:`, error);
+            // Don't throw, continue with other chunks
+            console.warn(`[LoadingScreen] Continuing despite chunk error`);
+          }
         }
 
         generated++;
         this.updateStageProgress(generated / totalChunks, `Chunk ${cx},${cz}`);
-        await this.sleep(1); // Small yield to keep UI responsive
+        // Yield to event loop every chunk
+        await this.sleep(0);
       }
     }
 
     // Run terrain update to finalize LODs, etc.
     console.log('[LoadingScreen] Running terrain update...');
-    this.terrainSystem.update(0);
-    console.log('[LoadingScreen] Terrain update done');
+    try {
+      this.terrainSystem.update(0);
+      console.log('[LoadingScreen] Terrain update done');
+    } catch (error) {
+      console.error('[LoadingScreen] Error in terrain update:', error);
+      // Don't throw, continue
+    }
 
     this.currentDetails = 'Terreno gerado com sucesso';
     this.reportProgress(1);
     await this.sleep(100);
+  }
+
+  // Generate chunk asynchronously to avoid blocking main thread
+  private async generateChunkAsync(chunk: any): Promise<void> {
+    return new Promise((resolve) => {
+      // Use requestIdleCallback or setTimeout to yield to event loop
+      const doWork = () => {
+        try {
+          this.terrainSystem.generateChunk(chunk);
+          resolve();
+        } catch (error) {
+          console.error('[LoadingScreen] Error generating chunk:', error);
+          resolve(); // Don't reject, just continue
+        }
+      };
+
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(doWork, { timeout: 100 });
+      } else {
+        setTimeout(doWork, 0);
+      }
+    });
   }
 
   private async loadAssets(): Promise<void> {
@@ -251,39 +286,44 @@ export class LoadingScreen {
     this.currentDetails = 'Preparando pipeline de assets...';
     this.reportProgress(0);
 
-    // Define core assets to load for menu/gameplay
-    // In a real game, this would come from an asset manifest
-    const coreAssets: AssetManifestEntry[] = [
-      // These would be actual GLTF/GLB files from public sources
-      // For now, we'll simulate the loading
-    ];
-
-    if (coreAssets.length > 0) {
-      await this.assetLoader.loadManifest(coreAssets);
-    } else {
-      // Simulate asset loading for demo
-      const steps = [
-        'Shaders PBR compilados',
-        'Materiais de terreno (triplanar)',
-        'Modelos de jogador/armas',
-        'Criaturas base (lobo, cervo)',
-        'Partículas e efeitos',
-        'UI textures e fontes',
+    try {
+      // Define core assets to load for menu/gameplay
+      // In a real game, this would come from an asset manifest
+      const coreAssets: AssetManifestEntry[] = [
+        // These would be actual GLTF/GLB files from public sources
+        // For now, we'll simulate the loading
       ];
 
-      for (let i = 0; i < steps.length; i++) {
-        const step = steps[i]!;
-        console.log(`[LoadingScreen] Asset step: ${step}`);
-        this.currentDetails = step;
-        this.updateStageProgress((i + 1) / steps.length, step);
-        await this.sleep(80);
-      }
-    }
+      if (coreAssets.length > 0) {
+        await this.assetLoader.loadManifest(coreAssets);
+      } else {
+        // Simulate asset loading for demo
+        const steps = [
+          'Shaders PBR compilados',
+          'Materiais de terreno (triplanar)',
+          'Modelos de jogador/armas',
+          'Criaturas base (lobo, cervo)',
+          'Partículas e efeitos',
+          'UI textures e fontes',
+        ];
 
-    console.log('[LoadingScreen] Assets loaded');
-    this.currentDetails = 'Assets carregados';
-    this.reportProgress(1);
-    await this.sleep(100);
+        for (let i = 0; i < steps.length; i++) {
+          const step = steps[i]!;
+          console.log(`[LoadingScreen] Asset step: ${step}`);
+          this.currentDetails = step;
+          this.updateStageProgress((i + 1) / steps.length, step);
+          await this.sleep(80);
+        }
+      }
+
+      console.log('[LoadingScreen] Assets loaded');
+      this.currentDetails = 'Assets carregados';
+      this.reportProgress(1);
+      await this.sleep(100);
+    } catch (error) {
+      console.error('[LoadingScreen] Error loading assets:', error);
+      throw error;
+    }
   }
 
   private async restoreEntities(): Promise<void> {
@@ -291,51 +331,56 @@ export class LoadingScreen {
     this.currentMessage = 'Restaurando entidades do save...';
     this.reportProgress(0);
 
-    if (!this.loadSaveData) {
-      // New game - create fresh player
-      this.currentDetails = 'Criando novo jogador...';
-      console.log('[LoadingScreen] Creating new player...');
-      this.playerSystem.createPlayer({ x: 0, y: 35, z: 0 });
-      console.log('[LoadingScreen] Player created');
+    try {
+      if (!this.loadSaveData) {
+        // New game - create fresh player
+        this.currentDetails = 'Criando novo jogador...';
+        console.log('[LoadingScreen] Creating new player...');
+        this.playerSystem.createPlayer({ x: 0, y: 35, z: 0 });
+        console.log('[LoadingScreen] Player created');
+        this.reportProgress(0.5);
+        await this.sleep(50);
+
+        this.currentDetails = 'Inicializando inventário padrão...';
+        // Inventory already initialized in createPlayer
+        this.reportProgress(1);
+        await this.sleep(50);
+        console.log('[LoadingScreen] New game entities ready');
+        return;
+      }
+
+      // Load existing save
+      const data = this.loadSaveData;
+
+      this.currentDetails = `Restaurando jogador (${data.metadata.playerName})...`;
+      this.playerSystem.createPlayer(data.player.position);
+      this.playerSystem.deserializePlayerState(data.player);
+      this.reportProgress(0.3);
+      await this.sleep(50);
+
+      this.currentDetails = 'Restaurando quimeras e pets...';
+      // Chimera restoration would go here
       this.reportProgress(0.5);
       await this.sleep(50);
 
-      this.currentDetails = 'Inicializando inventário padrão...';
-      // Inventory already initialized in createPlayer
-      this.reportProgress(1);
+      this.currentDetails = 'Restaurando construções...';
+      // Building restoration would go here
+      this.reportProgress(0.7);
       await this.sleep(50);
-      console.log('[LoadingScreen] New game entities ready');
-      return;
+
+      this.currentDetails = 'Restaurando estado do mundo...';
+      // World state (destroyed nodes, creature states, modified chunks)
+      this.reportProgress(0.9);
+      await this.sleep(50);
+
+      this.currentDetails = 'Save restaurado com sucesso';
+      this.reportProgress(1);
+      await this.sleep(100);
+      console.log('[LoadingScreen] Entities restored');
+    } catch (error) {
+      console.error('[LoadingScreen] Error restoring entities:', error);
+      throw error;
     }
-
-    // Load existing save
-    const data = this.loadSaveData;
-
-    this.currentDetails = `Restaurando jogador (${data.metadata.playerName})...`;
-    this.playerSystem.createPlayer(data.player.position);
-    this.playerSystem.deserializePlayerState(data.player);
-    this.reportProgress(0.3);
-    await this.sleep(50);
-
-    this.currentDetails = 'Restaurando quimeras e pets...';
-    // Chimera restoration would go here
-    this.reportProgress(0.5);
-    await this.sleep(50);
-
-    this.currentDetails = 'Restaurando construções...';
-    // Building restoration would go here
-    this.reportProgress(0.7);
-    await this.sleep(50);
-
-    this.currentDetails = 'Restaurando estado do mundo...';
-    // World state (destroyed nodes, creature states, modified chunks)
-    this.reportProgress(0.9);
-    await this.sleep(50);
-
-    this.currentDetails = 'Save restaurado com sucesso';
-    this.reportProgress(1);
-    await this.sleep(100);
-    console.log('[LoadingScreen] Entities restored');
   }
 
   private async warmPools(): Promise<void> {
@@ -343,12 +388,17 @@ export class LoadingScreen {
     this.currentMessage = 'Aquecendo object pools...';
     this.currentDetails = 'Pré-alocando partículas, projéteis, efeitos...';
     this.reportProgress(0.3);
-    await this.sleep(100);
+    try {
+      await this.sleep(100);
 
-    this.currentDetails = 'Pools prontos';
-    this.reportProgress(1);
-    await this.sleep(50);
-    console.log('[LoadingScreen] Pools warmed');
+      this.currentDetails = 'Pools prontos';
+      this.reportProgress(1);
+      await this.sleep(50);
+      console.log('[LoadingScreen] Pools warmed');
+    } catch (error) {
+      console.error('[LoadingScreen] Error warming pools:', error);
+      throw error;
+    }
   }
 
   private async finalize(): Promise<void> {
@@ -356,16 +406,21 @@ export class LoadingScreen {
     this.currentMessage = 'Finalizando...';
     this.currentDetails = 'Aplicando configurações gráficas...';
     this.reportProgress(0.3);
-    await this.sleep(50);
+    try {
+      await this.sleep(50);
 
-    this.currentDetails = 'Iniciando MainMenu3D...';
-    this.reportProgress(0.6);
-    await this.sleep(50);
+      this.currentDetails = 'Iniciando MainMenu3D...';
+      this.reportProgress(0.6);
+      await this.sleep(50);
 
-    this.currentDetails = 'Pronto para jogar!';
-    this.reportProgress(1);
-    await this.sleep(50);
-    console.log('[LoadingScreen] Finalized');
+      this.currentDetails = 'Pronto para jogar!';
+      this.reportProgress(1);
+      await this.sleep(50);
+      console.log('[LoadingScreen] Finalized');
+    } catch (error) {
+      console.error('[LoadingScreen] Error finalizing:', error);
+      throw error;
+    }
   }
 
   // ============================================================================
