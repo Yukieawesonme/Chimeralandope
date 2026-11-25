@@ -189,6 +189,12 @@ export class GameEngine {
 
   private render(alpha: number): void {
     this.renderer.render();
+
+    // Render In-Game Log HUD 3D after main scene
+    const hud = (window as any).inGameLogHUD3D;
+    if (hud && hud.isInitialized) {
+      hud.render(this.renderer);
+    }
   }
 
   // ---- State Management ----

@@ -137,6 +137,13 @@ export class Renderer {
     this.onAfterRender?.();
   }
 
+  // Render HUD elements (called after main scene)
+  renderHUD(hudScene: THREE.Scene, hudCamera: THREE.Camera): void {
+    this.renderer.autoClear = false;
+    this.renderer.render(hudScene, hudCamera);
+    this.renderer.autoClear = true;
+  }
+
   renderShadowMap(light: THREE.Light, camera: THREE.Camera): void {
     this.renderer.render(this.scene, camera);
   }

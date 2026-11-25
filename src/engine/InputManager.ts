@@ -602,6 +602,30 @@ export class InputManager {
     return this.state.actionReleased.has(action);
   }
 
+  // ---- Mobile Controls API ----
+
+  /** Simulate pressing an action (for mobile touch controls) */
+  simulateActionPress(action: ActionName): void {
+    this.pressAction(action);
+  }
+
+  /** Simulate releasing an action (for mobile touch controls) */
+  simulateActionRelease(action: ActionName): void {
+    this.releaseAction(action);
+  }
+
+  /** Set movement vector directly (for virtual joystick) */
+  setMoveVector(x: number, y: number): void {
+    this.state.move.x = x;
+    this.state.move.y = y;
+  }
+
+  /** Add look delta directly (for touch look area) */
+  addLookDelta(dx: number, dy: number): void {
+    this.state.look.x += dx;
+    this.state.look.y += dy;
+  }
+
   getMoveVector(): Vec2 {
     return { ...this.state.move };
   }

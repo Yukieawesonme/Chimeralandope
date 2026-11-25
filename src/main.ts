@@ -13,6 +13,7 @@ import { BiomeManager } from '@world/BiomeManager.js';
 import { MainMenu3D } from '@ui/MainMenu3D.js';
 import { LoadingScreen, LoadingStage } from '@ui/LoadingScreen.js';
 import { LogConsole, initLogConsole, LogLevel } from '@ui/LogConsole.js';
+import { InGameLogHUD3D } from '@ui/InGameLogHUD3D.js';
 
 // ============================================================================
 // GLOBAL REFERENCES
@@ -26,6 +27,7 @@ let terrainSystem: TerrainSystem;
 let biomeManager: BiomeManager;
 let mainMenu3D: MainMenu3D;
 let loadingScreen: LoadingScreen;
+let inGameLogHUD3D: any = null;
 
 // ============================================================================
 // INITIALIZATION
@@ -39,7 +41,7 @@ async function main(): Promise<void> {
     showTimestamps: true,
     showLevels: true,
     autoScroll: true,
-    defaultFilter: [LogLevel.Info, LogLevel.Warn, LogLevel.Error],
+    defaultFilter: [LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error],
   });
   // Make globally accessible for debugging
   (window as any).logConsole = logConsole;
@@ -60,6 +62,28 @@ async function main(): Promise<void> {
   // Create and initialize engine
   engine = await createGameEngine(container);
   graphicsManager.setRenderer(engine.getRenderer());
+
+  // Initialize In-Game Log HUD 3D (renders within game canvas)
+  inGameLogHUD3D = new (await import('@ui/InGameLogHUD3D.js')).InGameLogHUD3D(logConsole, {
+    position: 'bottom-left',
+    width: 420,
+    height: 280,
+    maxVisibleEntries: 30,
+    fontSize: 12,
+    showTimestamps: true,
+    showLevels: true,
+    autoScroll: true,
+    keybind: 'F3',
+  });
+  inGameLogHUD3D.initialize(
+    engine.getRenderer(),
+    engine.getWorld() as any,
+    engine.getRenderer().getCamera()
+  );
+  console.log('[Main] InGameLogHUD3D initialized');
+
+  // Make globally accessible for GameEngine rendering
+  (window as any).inGameLogHUD3D = inGameLogHUD3D;
 
   // Initialize game systems
   initializeGameSystems();
@@ -246,11 +270,13 @@ function setupUI(): void {
   const newGameBtn = document.getElementById('btn-new-game');
   const loadGameBtn = document.getElementById('btn-load-game');
   const settingsBtn = document.getElementById('btn-settings');
+  const logConsoleBtn = document.getElementById('btn-log-console');
   const quitBtn = document.getElementById('btn-quit');
 
   newGameBtn?.addEventListener('click', () => startNewGame());
   loadGameBtn?.addEventListener('click', () => showLoadMenu());
   settingsBtn?.addEventListener('click', () => showSettingsMenu());
+  logConsoleBtn?.addEventListener('click', () => toggleLogConsole());
   quitBtn?.addEventListener('click', () => window.close());
 
   // Load Menu
@@ -270,13 +296,19 @@ function setupUI(): void {
   const saveBtn = document.getElementById('btn-save');
   const loadBtn = document.getElementById('btn-load');
   const pauseSettingsBtn = document.getElementById('btn-pause-settings');
+  const pauseLogConsoleBtn = document.getElementById('btn-pause-log-console');
   const mainMenuBtn = document.getElementById('btn-main-menu');
 
   resumeBtn?.addEventListener('click', () => engine.changeState(GameState.Gameplay));
   saveBtn?.addEventListener('click', () => quickSave());
   loadBtn?.addEventListener('click', () => { engine.changeState(GameState.MainMenu); showLoadMenu(); });
   pauseSettingsBtn?.addEventListener('click', () => showSettingsMenu());
+  pauseLogConsoleBtn?.addEventListener('click', () => toggleLogConsole());
   mainMenuBtn?.addEventListener('click', () => { engine.changeState(GameState.MainMenu); showMainMenu(); });
+
+  // Debug Log Button (HUD)
+  const debugLogBtn = document.getElementById('btn-debug-log');
+  debugLogBtn?.addEventListener('click', () => toggleDebugLogHUD());
 
   // Error screen retry
   const errorRetryBtn = document.getElementById('btn-error-retry');
@@ -287,6 +319,20 @@ function setupUI(): void {
 
   // HUD
   setupHUD();
+}
+
+function toggleLogConsole(): void {
+  const logConsole = (window as any).logConsole;
+  if (logConsole) {
+    logConsole.toggle();
+  }
+}
+
+function toggleDebugLogHUD(): void {
+  const hud = (window as any).inGameLogHUD3D;
+  if (hud) {
+    hud.toggle();
+  }
 }
 
 function showMainMenu(): void {
