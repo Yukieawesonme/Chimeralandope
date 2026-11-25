@@ -148,7 +148,7 @@ export class InGameLogHUD3D {
     this.bindKeys();
 
     // Set initial visibility
-    this.setVisibility(false);
+    this.setVisibility(true);
 
     this.isInitialized = true;
     console.log('[InGameLogHUD3D] Initialized with Three.js');
